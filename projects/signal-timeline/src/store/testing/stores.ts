@@ -19,7 +19,7 @@ export const initialCounter: CounterState = {
 
 export function createCounterStore(options: TimelineOptions<CounterState> = {}) {
   return signalStore(
-    { providedIn: 'root' },
+    { providedIn: 'root', protectedState: false },
     withState(initialCounter),
     withComputed(({ count }) => ({ double: computed(() => count() * 2) })),
     withTimeline(options),

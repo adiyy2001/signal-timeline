@@ -29,14 +29,22 @@
           "options": {
             "tsConfig": "projects/signal-timeline/tsconfig.spec.json",
             "runner": "vitest",
-            "coverageInclude": ["projects/signal-timeline/src/**/*.ts"],
+            "coverageInclude": [
+              "projects/signal-timeline/src/**/*.ts",
+              "projects/signal-timeline/devtools/src/**/*.ts"
+            ],
             "coverageExclude": [
               "projects/signal-timeline/src/**/*.spec.ts",
               "projects/signal-timeline/src/**/*.type-spec.ts",
               "projects/signal-timeline/src/**/testing/**",
-              "projects/signal-timeline/src/public-api.ts"
+              "projects/signal-timeline/src/public-api.ts",
+              "projects/signal-timeline/devtools/src/**/*.spec.ts",
+              "projects/signal-timeline/devtools/src/**/*.type-spec.ts",
+              "projects/signal-timeline/devtools/src/**/testing/**",
+              "projects/signal-timeline/devtools/src/public-api.ts"
             ],
-            "coverageReporters": ["text-summary", "json-summary", "html"]
+            "coverageReporters": ["text-summary", "json-summary", "html"],
+            "include": ["**/*.spec.ts", "../devtools/src/**/*.spec.ts"]
           }
         }
       }

@@ -3,7 +3,10 @@
   "compilerOptions": {
     "outDir": "../../out-tsc/type-tests",
     "types": ["vitest/globals"],
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "signal-timeline": ["./src/public-api.ts"]
+    }
   },
-  "include": ["src/**/*.type-spec.ts"]
+  "include": ["src/**/*.type-spec.ts", "devtools/src/**/*.type-spec.ts"]
 }

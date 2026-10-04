@@ -2,7 +2,17 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/spec",
-    "types": ["vitest/globals", "node"]
+    "types": ["vitest/globals", "node"],
+    "paths": {
+      "signal-timeline": ["./src/public-api.ts"]
+    }
   },
-  "include": ["src/**/*.d.ts", "src/**/*.spec.ts", "src/**/testing/**/*.ts"]
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.spec.ts",
+    "src/**/testing/**/*.ts",
+    "devtools/src/**/*.d.ts",
+    "devtools/src/**/*.spec.ts",
+    "devtools/src/**/testing/**/*.ts"
+  ]
 }

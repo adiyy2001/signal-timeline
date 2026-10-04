@@ -8,7 +8,7 @@ const projects = [
   'projects/signal-timeline/tsconfig.lib.json',
   'projects/signal-timeline/tsconfig.spec.json',
   'projects/signal-timeline/tsconfig.type-tests.json',
-  'projects/signal-timeline/devtools/tsconfig.spec.json',
+  'projects/signal-timeline/devtools/tsconfig.lib.json',
   'projects/demo/tsconfig.app.json',
   'projects/demo/tsconfig.spec.json',
   'bench/tsconfig.json',

@@ -1,0 +1,9 @@
+dist
+coverage
+.angular
+out-tsc
+pnpm-lock.yaml
+*.md
+docs/api
+site
+.compat

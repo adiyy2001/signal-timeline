@@ -32,3 +32,4 @@ e2e/videos/
 e2e/screenshots/
 
 C:*
+out-tsc/

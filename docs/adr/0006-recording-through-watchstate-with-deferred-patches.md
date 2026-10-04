@@ -40,7 +40,7 @@ So any diff that scans a 10,000 key map is above the target by an order of magni
 - Update of one entity in the 10,000 entity map: the update itself takes 2.7 to 3.8 ms. The synchronous overhead was 0.12 to 0.37 ms across three runs, so the 0.1 ms target is missed on this path and the noise is as large as the effect. Including the patches the overhead was 3.0 to 4.7 ms, almost all of it the diff of the two entity maps.
 - The code on the hot path is O(root keys), and the small slice number shows it. The extra cost on the entity map is most likely garbage collection pressure from keeping the before and after maps alive until the patch exists, which M5 has to confirm with heap measurements.
 
-M5 owns the real numbers: paired measurements, the key cache and a cheaper comparison for large maps. The README reports what the suite measures, including a miss.
+Superseded in M5: `bench:probe` is removed and the numbers come from `pnpm bench` with interleaved pairs, see ADR 0014. The suspicion above was wrong in one respect: the synchronous overhead on the entity path is 0.012 ms median in Node, and the earlier 0.12 to 0.37 ms was subtraction noise between two separate runs.
 
 ## Development check
 

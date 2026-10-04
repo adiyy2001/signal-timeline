@@ -2,7 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } fro
 import type { TimelineSource } from 'signal-timeline';
 import { indexEntries, pathFromRoot, resolveTip } from './active-path';
 import { EntryDiffComponent } from './diff-view/entry-diff.component';
-import { TimelineScrubberComponent } from './scrubber/timeline-scrubber.component';
+import {
+  TimelineScrubberComponent,
+  resolveMove,
+  type ScrubberMove,
+} from './scrubber/timeline-scrubber.component';
 import { BranchTreeComponent } from './tree/branch-tree.component';
 
 /**
@@ -75,6 +79,16 @@ export class TimelineDevtoolsComponent {
 
   protected inspect(entryId: number): void {
     this.inspectedId.set(entryId);
+  }
+
+  protected moveAlongBranch(move: ScrubberMove): void {
+    const path = this.activePath();
+    const index = Math.max(path.indexOf(this.timeline().currentEntryId()), 0);
+    const target = resolveMove(move, index, path.length - 1);
+    const entryId = path[target];
+    if (entryId !== undefined && target !== index) {
+      this.timeline().jumpTo(entryId);
+    }
   }
 
   protected jumpToFirst(): void {

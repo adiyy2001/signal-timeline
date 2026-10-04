@@ -300,6 +300,15 @@ describe('TimelineDevtoolsComponent', () => {
       expect(store.currentEntryId()).toBe(store.entries().at(-1)?.id);
     });
 
+    it('takes a second key press before the view has caught up with the first', () => {
+      const store = branchingStore();
+      const fixture = mountDevtools(store);
+      const input = range(fixture);
+      press(input, 'ArrowLeft');
+      press(input, 'ArrowLeft');
+      expect(store.currentEntryId()).toBe(1);
+    });
+
     it('goes to the ends with Home and End and by ten with Page Up and Page Down', async () => {
       const store = branchingStore();
       const fixture = mountDevtools(store);

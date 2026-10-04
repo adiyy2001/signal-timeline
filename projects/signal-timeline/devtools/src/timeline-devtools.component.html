@@ -16,7 +16,7 @@
   <st-timeline-scrubber
     [path]="branchEntries()"
     [currentId]="currentId()"
-    (jump)="jumpTo($event)"
+    (move)="moveAlongBranch($event)"
   />
 
   <div class="body">

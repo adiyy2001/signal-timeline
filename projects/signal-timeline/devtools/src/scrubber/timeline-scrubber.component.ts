@@ -3,6 +3,52 @@ import type { TimelineEntry } from 'signal-timeline';
 
 const pageStep = 10;
 
+/**
+ * What the user asked the scrubber to do. The owner resolves it against the live history, so a
+ * key pressed before the view has caught up with the previous one still moves one more step.
+ */
+export type ScrubberMove =
+  | { readonly kind: 'by'; readonly steps: number }
+  | { readonly kind: 'index'; readonly index: number }
+  | { readonly kind: 'start' }
+  | { readonly kind: 'end' };
+
+function moveForKey(key: string): ScrubberMove | undefined {
+  switch (key) {
+    case 'ArrowLeft':
+    case 'ArrowDown':
+      return { kind: 'by', steps: -1 };
+    case 'ArrowRight':
+    case 'ArrowUp':
+      return { kind: 'by', steps: 1 };
+    case 'PageDown':
+      return { kind: 'by', steps: -pageStep };
+    case 'PageUp':
+      return { kind: 'by', steps: pageStep };
+    case 'Home':
+      return { kind: 'start' };
+    case 'End':
+      return { kind: 'end' };
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * The index a move leads to, kept inside the track.
+ */
+export function resolveMove(move: ScrubberMove, index: number, lastIndex: number): number {
+  const requested =
+    move.kind === 'by'
+      ? index + move.steps
+      : move.kind === 'index'
+        ? move.index
+        : move.kind === 'start'
+          ? 0
+          : lastIndex;
+  return Math.min(Math.max(requested, 0), lastIndex);
+}
+
 @Component({
   selector: 'st-timeline-scrubber',
   templateUrl: './timeline-scrubber.component.html',
@@ -12,7 +58,7 @@ const pageStep = 10;
 export class TimelineScrubberComponent {
   readonly path = input.required<readonly TimelineEntry[]>();
   readonly currentId = input.required<number>();
-  readonly jump = output<number>();
+  readonly move = output<ScrubberMove>();
 
   protected readonly lastIndex = computed(() => Math.max(this.path().length - 1, 0));
   protected readonly index = computed(() =>
@@ -29,7 +75,7 @@ export class TimelineScrubberComponent {
 
   protected onInput(event: Event): void {
     if (event.target instanceof HTMLInputElement) {
-      this.moveTo(Math.round(Number(event.target.value)));
+      this.move.emit({ kind: 'index', index: Math.round(Number(event.target.value)) });
     }
   }
 
@@ -37,40 +83,10 @@ export class TimelineScrubberComponent {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
       return;
     }
-    const target = this.targetIndexFor(event.key);
-    if (target === undefined) {
-      return;
-    }
-    event.preventDefault();
-    this.moveTo(target);
-  }
-
-  private targetIndexFor(key: string): number | undefined {
-    switch (key) {
-      case 'ArrowLeft':
-      case 'ArrowDown':
-        return this.index() - 1;
-      case 'ArrowRight':
-      case 'ArrowUp':
-        return this.index() + 1;
-      case 'PageDown':
-        return this.index() - pageStep;
-      case 'PageUp':
-        return this.index() + pageStep;
-      case 'Home':
-        return 0;
-      case 'End':
-        return this.lastIndex();
-      default:
-        return undefined;
-    }
-  }
-
-  private moveTo(requested: number): void {
-    const clamped = Math.min(Math.max(requested, 0), this.lastIndex());
-    const entry = this.path()[clamped];
-    if (entry !== undefined && clamped !== this.index()) {
-      this.jump.emit(entry.id);
+    const move = moveForKey(event.key);
+    if (move !== undefined) {
+      event.preventDefault();
+      this.move.emit(move);
     }
   }
 }

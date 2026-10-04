@@ -79,11 +79,15 @@ function requirePatch(value: unknown, what: string): Patch {
   return value.map((operation, index) => requireOperation(operation, `${what}[${index}]`));
 }
 
-function requireKeys(value: unknown, expected: readonly string[], what: string): void {
+function requireStringList(value: unknown, what: string): readonly string[] {
   if (!Array.isArray(value) || value.some((key) => typeof key !== 'string')) {
     return fail(`${what} must be a list of strings`);
   }
-  const stored = [...(value as string[])].sort();
+  return value as string[];
+}
+
+function requireKeys(value: unknown, expected: readonly string[], what: string): void {
+  const stored = [...requireStringList(value, what)].sort();
   const wanted = [...expected].sort();
   if (stored.length !== wanted.length || stored.some((key, index) => key !== wanted[index])) {
     return fail(`${what} (${stored.join(', ')}) do not match the store (${wanted.join(', ')})`);
@@ -106,6 +110,7 @@ function requireNode(value: unknown, index: number): SnapshotNode {
     timestamp: requireTimestamp(node['timestamp'], `${what}.timestamp`),
     forward: requirePatch(node['forward'], `${what}.forward`),
     inverse: requirePatch(node['inverse'], `${what}.inverse`),
+    changedKeys: requireStringList(node['changedKeys'], `${what}.changedKeys`),
     lastVisitedChild: optionalInteger(node['lastVisitedChild'], `${what}.lastVisitedChild`),
   };
 }

@@ -119,6 +119,8 @@ describe('persistence format', () => {
     expect(() => parse(withFirst({ forward: [{ op: 'add', path: '/a' }] }))).toThrow(/no value/);
     expect(() => parse(withFirst({ forward: [{ op: 'remove', path: 3 }] }))).toThrow(/path/);
     expect(() => parse(withFirst({ lastVisitedChild: 'x' }))).toThrow(/lastVisitedChild/);
+    expect(() => parse(withFirst({ changedKeys: 'a' }))).toThrow(/changedKeys must be a list/);
+    expect(() => parse(withFirst({ changedKeys: [1] }))).toThrow(/changedKeys must be a list/);
   });
 
   it('accepts a missing lastVisitedChild and a remove operation', () => {

@@ -1,0 +1,32 @@
+import { TestBed } from '@angular/core/testing';
+import { describe, expect, it } from 'vitest';
+import { App, CounterStore } from './app';
+
+describe('signal-timeline from the installed package', () => {
+  it('undoes and redoes a change', () => {
+    const store = TestBed.inject(CounterStore);
+    store.increment();
+    store.increment();
+    expect(store.count()).toBe(2);
+    store.undo();
+    expect(store.count()).toBe(1);
+    store.redo();
+    expect(store.count()).toBe(2);
+  });
+
+  it('records one entry per change and the initial state', () => {
+    const store = TestBed.inject(CounterStore);
+    store.increment();
+    expect(store.entries().length).toBe(2);
+    expect(store.canUndo()).toBe(true);
+  });
+
+  it('renders the devtools panel next to the app', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('st-devtools')).not.toBeNull();
+    expect(element.querySelector('section[aria-label="Timeline devtools"]')).not.toBeNull();
+  });
+});

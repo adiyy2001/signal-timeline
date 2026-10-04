@@ -1,0 +1,30 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
+import { withTimeline } from 'signal-timeline';
+import { TimelineDevtoolsComponent } from 'signal-timeline/devtools';
+
+export const CounterStore = signalStore(
+  { providedIn: 'root' },
+  withState({ count: 0 }),
+  withTimeline({ label: (change) => `count ${change.after.count}` }),
+  withMethods((store) => ({
+    increment(): void {
+      patchState(store, (state) => ({ count: state.count + 1 }));
+    },
+  })),
+);
+
+@Component({
+  selector: 'app-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TimelineDevtoolsComponent],
+  template: `
+    <button type="button" id="increment" (click)="store.increment()">Increment</button>
+    <button type="button" id="undo" [disabled]="!store.canUndo()" (click)="store.undo()">Undo</button>
+    <output id="count">{{ store.count() }}</output>
+    <st-devtools [timeline]="store" />
+  `,
+})
+export class App {
+  protected readonly store = inject(CounterStore);
+}

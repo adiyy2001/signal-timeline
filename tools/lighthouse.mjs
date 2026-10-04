@@ -86,9 +86,11 @@ try {
     }
   }
 } finally {
+  const exited = new Promise((resolve) => chrome.once('exit', resolve));
   chrome.kill('SIGKILL');
+  await exited;
   await close();
-  rmSync(profile, { recursive: true, force: true });
+  rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 });
   removeStrayProfileFolders();
 }
 process.exit(failed ? 1 : 0);

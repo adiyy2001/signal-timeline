@@ -36,6 +36,7 @@
 
 table {
   width: 100%;
+  min-width: 26rem;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }

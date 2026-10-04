@@ -94,9 +94,13 @@
     stroke: CanvasText;
   }
 
-  .shape,
-  .node.active .shape {
+  .shape {
     fill: Canvas;
+  }
+
+  .node.active .shape {
+    fill: CanvasText;
+    stroke: CanvasText;
   }
 
   .node.current .shape {

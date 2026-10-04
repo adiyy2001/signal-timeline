@@ -102,7 +102,12 @@ function createRuntime(store: LooseState, options: UntypedOptions): TimelineRunt
 
 /**
  * Adds undo, redo, transactions, a branching history tree and time travel to a SignalStore.
- * Put it after the features that define the state it should track.
+ * Put it after the features that define the state it should track. Tracked state must be plain
+ * data: objects, arrays, strings, numbers, booleans and null.
+ *
+ * Every `patchState` call that changes a tracked key becomes one entry. A change made after an
+ * undo starts a new branch and keeps the old one. Keys that are derived from other keys, for
+ * example through `withLinkedState`, belong in `skip`.
  */
 export function withTimeline<Input extends SignalStoreFeatureResult>(
   options: TimelineOptions<NoInfer<Input['state']>> = {},

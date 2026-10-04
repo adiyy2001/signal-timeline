@@ -587,6 +587,24 @@ describe('withTimeline', () => {
       warn.mockRestore();
     });
 
+    it('checks an entry that stays open until its window passes', async () => {
+      vi.useFakeTimers();
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const Store = signalStore(
+        { providedIn: 'root' },
+        withState<{ value: unknown }>({ value: 1 }),
+        withTimeline({ coalesce: { windowMs: 100 } }),
+        withMethods((store) => ({ set: (value: unknown) => patchState(store, { value }) })),
+      );
+      const store = TestBed.inject(Store);
+      store.set(new Map());
+      await vi.advanceTimersByTimeAsync(10);
+      expect(warn).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(200);
+      expect(warn).toHaveBeenCalledTimes(1);
+      warn.mockRestore();
+    });
+
     it('warns when a later change introduces non plain data', async () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const Store = signalStore(

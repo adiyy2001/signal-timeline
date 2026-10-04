@@ -61,11 +61,16 @@ export type TimelineOptions<State> = TimelineKeyOptions<State> & {
  * One node of the history tree as the store exposes it.
  */
 export interface TimelineEntry {
+  /** Increasing integer, never reused. */
   readonly id: number;
+  /** `undefined` for the initial state. */
   readonly parentId: number | undefined;
   readonly label: string;
+  /** Milliseconds since the epoch of the last change merged into the entry. */
   readonly timestamp: number;
+  /** Child ids in creation order. More than one means the history branches here. */
   readonly children: readonly number[];
+  /** Number of steps from the initial state. */
   readonly depth: number;
 }
 

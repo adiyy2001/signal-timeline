@@ -27,3 +27,6 @@ A change after an undo must start a branch and keep the redo history, like Vim's
 
 - Undo and redo cost one patch application. Jumps cost at most the path length or one checkpoint interval, whichever is smaller.
 - Pruning can drop whole branches, and the docs must say so.
+- A jump costs the cheaper of two routes: walking up to the lowest common ancestor and down, or replaying from the nearest checkpoint above the target. Entries that are still pending are stepped over by their stored references, so a jump over them applies no patch.
+- Depths are never renumbered. After the root advances, checkpoint positions still follow the original depth, and the new root always holds a checkpoint.
+- `snapshot()` stores the root state and the patches of every entry, not the checkpoints. `restore()` replays the tree once to rebuild them and throws `SnapshotError` for a missing parent, a duplicate id, a patch that does not apply or a bad pointer.

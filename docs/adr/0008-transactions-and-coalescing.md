@@ -32,3 +32,5 @@ Coalescing:
 
 - The rule about empty transactions is a refinement of the brief. It is recorded here and in the README limitations, not hidden.
 - The engine has an "open entry" concept with a timer, which tests drive with fake timers.
+- A merged entry (a gesture or a window run) whose net change is empty is removed when it is sealed, and the engine goes back to the parent. The check runs on a real diff, once per gesture, so a drag that ends where it started leaves no entry.
+- A key from `beginCoalescing` overrides the key from the options for as long as the gesture is open. Starting or ending a gesture seals the open entry, so two gestures with the same key stay two entries.

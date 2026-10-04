@@ -10,9 +10,35 @@ export interface PatchPair {
   readonly inverse: Patch;
 }
 
+interface RemovedEntry {
+  readonly path: string;
+  readonly oldValue: unknown;
+}
+
 class PairBuilder {
-  readonly forward: Operation[] = [];
-  readonly inverse: Operation[] = [];
+  forward: Operation[] = [];
+  inverse: Operation[] = [];
+
+  get length(): number {
+    return this.forward.length;
+  }
+
+  insertRemovals(index: number, removed: readonly RemovedEntry[]): void {
+    this.forward = [
+      ...this.forward.slice(0, index),
+      ...removed.map((entry): Operation => ({ op: 'remove', path: entry.path })),
+      ...this.forward.slice(index),
+    ];
+    this.inverse = [
+      ...this.inverse.slice(0, index),
+      ...removed.map((entry): Operation => ({
+        op: 'add',
+        path: entry.path,
+        value: entry.oldValue,
+      })),
+      ...this.inverse.slice(index),
+    ];
+  }
 
   add(path: string, value: unknown): void {
     this.forward.push({ op: 'add', path, value });
@@ -47,24 +73,55 @@ function diffValues(before: unknown, after: unknown, path: string, out: PairBuil
   }
 }
 
+const largeObjectKeyCount = 128;
+const keysOfLargeObjects = new WeakMap<object, readonly string[]>();
+
+function keysOfAfter(after: PlainObject): readonly string[] {
+  const keys = Object.keys(after);
+  if (keys.length >= largeObjectKeyCount) {
+    keysOfLargeObjects.set(after, keys);
+  }
+  return keys;
+}
+
+function keysOfBefore(before: PlainObject): readonly string[] {
+  const remembered = keysOfLargeObjects.get(before);
+  if (remembered === undefined) {
+    return Object.keys(before);
+  }
+  keysOfLargeObjects.delete(before);
+  return remembered;
+}
+
 function diffObjects(
   before: PlainObject,
   after: PlainObject,
   path: string,
   out: PairBuilder,
 ): void {
-  for (const key of Object.keys(before)) {
-    if (!hasOwn(after, key)) {
-      out.remove(joinPointer(path, key), before[key]);
+  const beforeKeys = keysOfBefore(before);
+  const firstOperation = out.length;
+  let kept = 0;
+  for (const key of keysOfAfter(after)) {
+    if (!hasOwn(before, key)) {
+      out.add(joinPointer(path, key), after[key]);
+      continue;
+    }
+    kept += 1;
+    const oldValue = before[key];
+    const newValue = after[key];
+    if (!Object.is(oldValue, newValue)) {
+      diffValues(oldValue, newValue, joinPointer(path, key), out);
     }
   }
-  for (const key of Object.keys(after)) {
-    const childPath = joinPointer(path, key);
-    if (hasOwn(before, key)) {
-      diffValues(before[key], after[key], childPath, out);
-    } else {
-      out.add(childPath, after[key]);
+  if (kept < beforeKeys.length) {
+    const removed: RemovedEntry[] = [];
+    for (const key of beforeKeys) {
+      if (!hasOwn(after, key)) {
+        removed.push({ path: joinPointer(path, key), oldValue: before[key] });
+      }
     }
+    out.insertRemovals(firstOperation, removed);
   }
 }
 

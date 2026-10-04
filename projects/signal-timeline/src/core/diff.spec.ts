@@ -147,3 +147,62 @@ describe('diffPair', () => {
     expect(diffPair(state, state)).toEqual({ forward: [], inverse: [] });
   });
 });
+
+describe('diff of large objects that are diffed again as the next before', () => {
+  type Entities = Record<string, { value: number }>;
+
+  function bigMap(size: number): Entities {
+    const map: Entities = {};
+    for (let index = 0; index < size; index += 1) {
+      map[`key-${index}`] = { value: index };
+    }
+    return map;
+  }
+
+  function nextMap(map: Entities, step: number): Entities {
+    const next = { ...map };
+    const keys = Object.keys(next);
+    if (step % 4 === 0) {
+      next[`added-${step}`] = { value: step };
+    } else if (step % 4 === 1) {
+      Reflect.deleteProperty(next, keys[step % keys.length]);
+    } else if (step % 4 === 2) {
+      next[keys[step % keys.length]] = { value: -step };
+    } else {
+      Reflect.deleteProperty(next, keys[(step * 7) % keys.length]);
+      next[`swapped-${step}`] = { value: step };
+    }
+    return next;
+  }
+
+  it('produces the same patches as a diff that has nothing remembered', () => {
+    let current = bigMap(300);
+    for (let step = 0; step < 120; step += 1) {
+      const next = nextMap(current, step);
+      const remembered = diffPair(current, next);
+      const fresh = diffPair(structuredClone(current), structuredClone(next));
+      expect(remembered).toEqual(fresh);
+      expect(applyPatch(current, remembered.forward)).toEqual(next);
+      expect(applyPatch(next, remembered.inverse)).toEqual(current);
+      current = next;
+    }
+  });
+
+  it('stays correct when the same object is the before of two different diffs', () => {
+    const base = bigMap(200);
+    const first = nextMap(base, 0);
+    const second = nextMap(base, 2);
+    diffPair(base, first);
+    const firstAgain = diffPair(base, first);
+    const secondDiff = diffPair(base, second);
+    expect(applyPatch(base, firstAgain.forward)).toEqual(first);
+    expect(applyPatch(base, secondDiff.forward)).toEqual(second);
+  });
+
+  it('keeps removes ahead of the other operations of the same object', () => {
+    const before = { ...bigMap(150), zeta: { value: 1 } };
+    const after = { ...bigMap(150), added: { value: 2 } };
+    const { forward } = diffPair(before, after);
+    expect(forward.map((operation) => operation.op)).toEqual(['remove', 'add']);
+  });
+});

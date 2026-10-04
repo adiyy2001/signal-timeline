@@ -1,0 +1,696 @@
+{
+  "runtime": "node",
+  "engine": "Node v24.21.0",
+  "generatedAt": "2026-10-04T03:17:49.929Z",
+  "smoke": false,
+  "hardware": {
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+    "cores": 20,
+    "memoryGb": 15,
+    "os": "linux 6.6.87.2-microsoft-standard-WSL2 x64"
+  },
+  "command": "node bench/run.mjs node",
+  "suites": {
+    "recording": {
+      "description": "Cost of recording one change. Each round runs the same operation on a store without the feature (baseline) and on a store with it, in one tinybench run. Synchronous overhead is the p50 on the patchState call minus the baseline p50, total overhead also includes the microtask that computes the patches. The reported value is the median over the rounds.",
+      "notes": [
+        "The timeline store is cleared every 400 operations outside the timed region to keep the history short.",
+        "A transaction computes its patch when it commits, so its synchronous and total overhead are the same work."
+      ],
+      "rows": [
+        {
+          "scenario": "scalar patch",
+          "ids": "string",
+          "entities": 10000,
+          "baselineMs": 0.0014,
+          "synchronousOverheadMs": 0.0021,
+          "synchronousOverheadMinMs": 0.0019,
+          "synchronousOverheadMaxMs": 0.0022,
+          "totalOverheadMs": 0.0033,
+          "rounds": 5
+        },
+        {
+          "scenario": "nested patch",
+          "ids": "string",
+          "entities": 10000,
+          "baselineMs": 0.0013,
+          "synchronousOverheadMs": 0.0019,
+          "synchronousOverheadMinMs": 0.0019,
+          "synchronousOverheadMaxMs": 0.002,
+          "totalOverheadMs": 0.0039,
+          "rounds": 5
+        },
+        {
+          "scenario": "updateEntity",
+          "ids": "string",
+          "entities": 10000,
+          "baselineMs": 2.6516,
+          "synchronousOverheadMs": 0.0765,
+          "synchronousOverheadMinMs": -0.0091,
+          "synchronousOverheadMaxMs": 0.1283,
+          "totalOverheadMs": 3.2676,
+          "rounds": 5
+        },
+        {
+          "scenario": "addEntity",
+          "ids": "string",
+          "entities": 10000,
+          "baselineMs": 2.7707,
+          "synchronousOverheadMs": 0.0147,
+          "synchronousOverheadMinMs": -0.006,
+          "synchronousOverheadMaxMs": 0.1139,
+          "totalOverheadMs": 0.0284,
+          "rounds": 5
+        },
+        {
+          "scenario": "removeEntity",
+          "ids": "string",
+          "entities": 10000,
+          "baselineMs": 2.8571,
+          "synchronousOverheadMs": 0.0796,
+          "synchronousOverheadMinMs": 0.0104,
+          "synchronousOverheadMaxMs": 0.1644,
+          "totalOverheadMs": -0.256,
+          "rounds": 5
+        },
+        {
+          "scenario": "transaction of ten updates",
+          "ids": "string",
+          "entities": 10000,
+          "baselineMs": 27.2812,
+          "synchronousOverheadMs": 3.0002,
+          "synchronousOverheadMinMs": 2.7287,
+          "synchronousOverheadMaxMs": 3.9333,
+          "totalOverheadMs": 3.3189,
+          "rounds": 5
+        },
+        {
+          "scenario": "scalar patch",
+          "ids": "integer",
+          "entities": 10000,
+          "baselineMs": 0.0012,
+          "synchronousOverheadMs": 0.0019,
+          "synchronousOverheadMinMs": 0.0018,
+          "synchronousOverheadMaxMs": 0.0019,
+          "totalOverheadMs": 0.003,
+          "rounds": 5
+        },
+        {
+          "scenario": "nested patch",
+          "ids": "integer",
+          "entities": 10000,
+          "baselineMs": 0.0013,
+          "synchronousOverheadMs": 0.0019,
+          "synchronousOverheadMinMs": 0.0018,
+          "synchronousOverheadMaxMs": 0.002,
+          "totalOverheadMs": 0.0038,
+          "rounds": 5
+        },
+        {
+          "scenario": "updateEntity",
+          "ids": "integer",
+          "entities": 10000,
+          "baselineMs": 1.2829,
+          "synchronousOverheadMs": 0.0384,
+          "synchronousOverheadMinMs": 0.0166,
+          "synchronousOverheadMaxMs": 0.1333,
+          "totalOverheadMs": 1.5416,
+          "rounds": 5
+        },
+        {
+          "scenario": "addEntity",
+          "ids": "integer",
+          "entities": 10000,
+          "baselineMs": 1.3203,
+          "synchronousOverheadMs": 0.0323,
+          "synchronousOverheadMinMs": -0.0043,
+          "synchronousOverheadMaxMs": 0.0649,
+          "totalOverheadMs": 0.0004,
+          "rounds": 5
+        },
+        {
+          "scenario": "removeEntity",
+          "ids": "integer",
+          "entities": 10000,
+          "baselineMs": 1.4131,
+          "synchronousOverheadMs": 0.0387,
+          "synchronousOverheadMinMs": 0.0178,
+          "synchronousOverheadMaxMs": 0.0613,
+          "totalOverheadMs": -0.1265,
+          "rounds": 5
+        },
+        {
+          "scenario": "transaction of ten updates",
+          "ids": "integer",
+          "entities": 10000,
+          "baselineMs": 13.0225,
+          "synchronousOverheadMs": 1.6923,
+          "synchronousOverheadMinMs": 1.5081,
+          "synchronousOverheadMaxMs": 1.9108,
+          "totalOverheadMs": 1.6135,
+          "rounds": 5
+        },
+        {
+          "scenario": "updateEntity",
+          "ids": "string",
+          "entities": 1000,
+          "baselineMs": 0.1748,
+          "synchronousOverheadMs": 0.0279,
+          "synchronousOverheadMinMs": 0.0236,
+          "synchronousOverheadMaxMs": 0.0344,
+          "totalOverheadMs": 0.4806,
+          "rounds": 5
+        },
+        {
+          "scenario": "updateEntity",
+          "ids": "string",
+          "entities": 50000,
+          "baselineMs": 18.1672,
+          "synchronousOverheadMs": 0.3077,
+          "synchronousOverheadMinMs": -1.628,
+          "synchronousOverheadMaxMs": 0.5668,
+          "totalOverheadMs": 19.8151,
+          "rounds": 5
+        }
+      ]
+    },
+    "navigation": {
+      "description": "Latency of undo, redo and jumpTo on a linear history of 10000 entries over 1000 entities with string ids, for several checkpoint intervals. A jump goes from the newest entry back by the given number of entries (the last one is the initial state), and the return trip is outside the timed region. The last row is one edit followed by reading the entries signal with the whole history in place.",
+      "notes": [
+        "Latencies include the patchState call that writes the target state back into the store and the watchers it triggers."
+      ],
+      "rows": [
+        {
+          "checkpointEvery": 10,
+          "operation": "undo",
+          "p50Ms": 0.018,
+          "p99Ms": 0.0373,
+          "samples": 13207
+        },
+        {
+          "checkpointEvery": 10,
+          "operation": "redo",
+          "p50Ms": 0.0024,
+          "p99Ms": 0.0036,
+          "samples": 98257
+        },
+        {
+          "checkpointEvery": 10,
+          "operation": "jump 10",
+          "p50Ms": 0.0158,
+          "p99Ms": 0.0322,
+          "samples": 15187
+        },
+        {
+          "checkpointEvery": 10,
+          "operation": "jump 100",
+          "p50Ms": 0.0182,
+          "p99Ms": 0.0352,
+          "samples": 13366
+        },
+        {
+          "checkpointEvery": 10,
+          "operation": "jump 1000",
+          "p50Ms": 0.042,
+          "p99Ms": 0.0727,
+          "samples": 5638
+        },
+        {
+          "checkpointEvery": 10,
+          "operation": "jump 5000",
+          "p50Ms": 0.2063,
+          "p99Ms": 0.3422,
+          "samples": 1170
+        },
+        {
+          "checkpointEvery": 10,
+          "operation": "jump 10000",
+          "p50Ms": 0.5254,
+          "p99Ms": 0.8385,
+          "samples": 463
+        },
+        {
+          "checkpointEvery": 25,
+          "operation": "undo",
+          "p50Ms": 0.0173,
+          "p99Ms": 0.034,
+          "samples": 13791
+        },
+        {
+          "checkpointEvery": 25,
+          "operation": "redo",
+          "p50Ms": 0.0024,
+          "p99Ms": 0.0037,
+          "samples": 101836
+        },
+        {
+          "checkpointEvery": 25,
+          "operation": "jump 10",
+          "p50Ms": 1.2953,
+          "p99Ms": 1.8128,
+          "samples": 187
+        },
+        {
+          "checkpointEvery": 25,
+          "operation": "jump 100",
+          "p50Ms": 0.0175,
+          "p99Ms": 0.0377,
+          "samples": 13503
+        },
+        {
+          "checkpointEvery": 25,
+          "operation": "jump 1000",
+          "p50Ms": 0.0431,
+          "p99Ms": 0.0848,
+          "samples": 5455
+        },
+        {
+          "checkpointEvery": 25,
+          "operation": "jump 5000",
+          "p50Ms": 0.2141,
+          "p99Ms": 0.3808,
+          "samples": 1118
+        },
+        {
+          "checkpointEvery": 25,
+          "operation": "jump 10000",
+          "p50Ms": 0.5029,
+          "p99Ms": 0.839,
+          "samples": 482
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "undo",
+          "p50Ms": 0.0178,
+          "p99Ms": 0.0403,
+          "samples": 13246
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "redo",
+          "p50Ms": 0.0024,
+          "p99Ms": 0.0041,
+          "samples": 99121
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "jump 10",
+          "p50Ms": 1.2938,
+          "p99Ms": 1.7869,
+          "samples": 185
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "jump 100",
+          "p50Ms": 0.0178,
+          "p99Ms": 0.0384,
+          "samples": 13286
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "jump 1000",
+          "p50Ms": 0.0431,
+          "p99Ms": 0.0976,
+          "samples": 5384
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "jump 5000",
+          "p50Ms": 0.2085,
+          "p99Ms": 0.3309,
+          "samples": 1167
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "jump 10000",
+          "p50Ms": 0.4964,
+          "p99Ms": 0.8669,
+          "samples": 485
+        },
+        {
+          "checkpointEvery": 100,
+          "operation": "undo",
+          "p50Ms": 0.0221,
+          "p99Ms": 0.0519,
+          "samples": 10717
+        },
+        {
+          "checkpointEvery": 100,
+          "operation": "redo",
+          "p50Ms": 0.0027,
+          "p99Ms": 0.0053,
+          "samples": 84954
+        },
+        {
+          "checkpointEvery": 100,
+          "operation": "jump 10",
+          "p50Ms": 1.4712,
+          "p99Ms": 2.3551,
+          "samples": 161
+        },
+        {
+          "checkpointEvery": 100,
+          "operation": "jump 100",
+          "p50Ms": 0.021,
+          "p99Ms": 0.0512,
+          "samples": 11120
+        },
+        {
+          "checkpointEvery": 100,
+          "operation": "jump 1000",
+          "p50Ms": 0.0501,
+          "p99Ms": 0.1078,
+          "samples": 4548
+        },
+        {
+          "checkpointEvery": 100,
+          "operation": "jump 5000",
+          "p50Ms": 0.2529,
+          "p99Ms": 0.3993,
+          "samples": 960
+        },
+        {
+          "checkpointEvery": 100,
+          "operation": "jump 10000",
+          "p50Ms": 0.6017,
+          "p99Ms": 1.0103,
+          "samples": 408
+        },
+        {
+          "checkpointEvery": 250,
+          "operation": "undo",
+          "p50Ms": 0.0205,
+          "p99Ms": 0.0398,
+          "samples": 11753
+        },
+        {
+          "checkpointEvery": 250,
+          "operation": "redo",
+          "p50Ms": 0.0023,
+          "p99Ms": 0.0037,
+          "samples": 102705
+        },
+        {
+          "checkpointEvery": 250,
+          "operation": "jump 10",
+          "p50Ms": 1.337,
+          "p99Ms": 1.8897,
+          "samples": 179
+        },
+        {
+          "checkpointEvery": 250,
+          "operation": "jump 100",
+          "p50Ms": 13.3278,
+          "p99Ms": 15.0632,
+          "samples": 32
+        },
+        {
+          "checkpointEvery": 250,
+          "operation": "jump 1000",
+          "p50Ms": 0.0436,
+          "p99Ms": 0.0803,
+          "samples": 5468
+        },
+        {
+          "checkpointEvery": 250,
+          "operation": "jump 5000",
+          "p50Ms": 0.2176,
+          "p99Ms": 0.4583,
+          "samples": 1109
+        },
+        {
+          "checkpointEvery": 250,
+          "operation": "jump 10000",
+          "p50Ms": 0.5202,
+          "p99Ms": 1.0067,
+          "samples": 460
+        },
+        {
+          "checkpointEvery": 1000,
+          "operation": "undo",
+          "p50Ms": 0.0295,
+          "p99Ms": 0.0545,
+          "samples": 8113
+        },
+        {
+          "checkpointEvery": 1000,
+          "operation": "redo",
+          "p50Ms": 0.0022,
+          "p99Ms": 0.0037,
+          "samples": 105675
+        },
+        {
+          "checkpointEvery": 1000,
+          "operation": "jump 10",
+          "p50Ms": 1.3226,
+          "p99Ms": 1.7048,
+          "samples": 184
+        },
+        {
+          "checkpointEvery": 1000,
+          "operation": "jump 100",
+          "p50Ms": 13.0066,
+          "p99Ms": 14.0594,
+          "samples": 32
+        },
+        {
+          "checkpointEvery": 1000,
+          "operation": "jump 1000",
+          "p50Ms": 0.042,
+          "p99Ms": 0.0708,
+          "samples": 5679
+        },
+        {
+          "checkpointEvery": 1000,
+          "operation": "jump 5000",
+          "p50Ms": 0.2186,
+          "p99Ms": 0.3934,
+          "samples": 1106
+        },
+        {
+          "checkpointEvery": 1000,
+          "operation": "jump 10000",
+          "p50Ms": 0.5411,
+          "p99Ms": 0.885,
+          "samples": 457
+        },
+        {
+          "checkpointEvery": 50,
+          "operation": "edit then read entries",
+          "p50Ms": 0.2403,
+          "p99Ms": 1.1161,
+          "samples": 788
+        }
+      ]
+    },
+    "throughput": {
+      "description": "Throughput of the structural diff (forward and inverse patch in one pass) and of applyPatch, called directly on plain data. Every diff pair shares the unchanged subtrees by reference.",
+      "notes": [
+        "The 100 operation patch replaces one field in each of the first 100 entities of the map, in one call."
+      ],
+      "rows": [
+        {
+          "operation": "diff, 6 key object, 1 change",
+          "p50Ms": 0.00092,
+          "p99Ms": 0.00127,
+          "operationsPerSecond": 1027844,
+          "samples": 256962
+        },
+        {
+          "operation": "diff, 12 levels deep, 1 change",
+          "p50Ms": 0.00971,
+          "p99Ms": 0.01844,
+          "operationsPerSecond": 98733,
+          "samples": 24684
+        },
+        {
+          "operation": "diff, 1,000 entity map, 1 change",
+          "p50Ms": 0.43165,
+          "p99Ms": 0.53328,
+          "operationsPerSecond": 2302,
+          "samples": 576
+        },
+        {
+          "operation": "diff, 10000 entity map, string keys, 1 change",
+          "p50Ms": 3.42961,
+          "p99Ms": 4.13643,
+          "operationsPerSecond": 294,
+          "samples": 74
+        },
+        {
+          "operation": "diff, 10000 entity map, integer keys, 1 change",
+          "p50Ms": 1.42377,
+          "p99Ms": 1.71868,
+          "operationsPerSecond": 699,
+          "samples": 175
+        },
+        {
+          "operation": "diff, array of 1,000, append",
+          "p50Ms": 0.00112,
+          "p99Ms": 0.0015,
+          "operationsPerSecond": 845181,
+          "samples": 211296
+        },
+        {
+          "operation": "diff, array of 1,000, 1 edit",
+          "p50Ms": 0.00121,
+          "p99Ms": 0.00185,
+          "operationsPerSecond": 809785,
+          "samples": 202447
+        },
+        {
+          "operation": "diff, unchanged same reference",
+          "p50Ms": 0.00004,
+          "p99Ms": 0.00009,
+          "operationsPerSecond": 25725381,
+          "samples": 6431346
+        },
+        {
+          "operation": "apply, 10000 entity map, 1 replace",
+          "p50Ms": 2.90192,
+          "p99Ms": 20.13697,
+          "operationsPerSecond": 274,
+          "samples": 69
+        },
+        {
+          "operation": "apply, 12 levels deep, 1 replace",
+          "p50Ms": 0.00537,
+          "p99Ms": 0.00725,
+          "operationsPerSecond": 111012,
+          "samples": 27753
+        },
+        {
+          "operation": "apply, 10000 entity map, 100 replaces in one call",
+          "p50Ms": 2.91804,
+          "p99Ms": 5.37346,
+          "operationsPerSecond": 332,
+          "samples": 84
+        }
+      ]
+    },
+    "memory": {
+      "description": "History after 10000 small edits over 1000 entities (70 percent entity moves, 20 percent counter, 10 percent nested view changes), compared with keeping a full snapshot of the tracked state after every edit. Serialized size is counted in characters of JSON (the content is ASCII, so characters are bytes). Heap is the retained size after a forced collection, with the same store without the feature subtracted. A snapshot is the references to the tracked slices after the edit, which is what a snapshot stack keeps.",
+      "notes": [
+        "Each updateEntity copies the whole entity map, so every snapshot keeps its own copy of the map. The history keeps one map per checkpoint instead.",
+        "The size and heap ratios are the snapshot figure divided by the history figure."
+      ],
+      "rows": [
+        {
+          "kind": "size and heap",
+          "edits": 10000,
+          "entities": 1000,
+          "historySerializedCharacters": 2800876,
+          "snapshotsSerializedCharacters": 658524488,
+          "serializedRatio": 235.1,
+          "historyHeapMb": 13.55,
+          "snapshotsHeapMb": 54.82,
+          "heapRatio": 4
+        },
+        {
+          "kind": "checkpoint heap",
+          "checkpointEvery": 10,
+          "edits": 10000,
+          "entities": 1000,
+          "historyHeapMb": 19.83
+        },
+        {
+          "kind": "checkpoint heap",
+          "checkpointEvery": 25,
+          "edits": 10000,
+          "entities": 1000,
+          "historyHeapMb": 15.12
+        },
+        {
+          "kind": "checkpoint heap",
+          "checkpointEvery": 50,
+          "edits": 10000,
+          "entities": 1000,
+          "historyHeapMb": 13.56
+        },
+        {
+          "kind": "checkpoint heap",
+          "checkpointEvery": 100,
+          "edits": 10000,
+          "entities": 1000,
+          "historyHeapMb": 12.75
+        },
+        {
+          "kind": "checkpoint heap",
+          "checkpointEvery": 250,
+          "edits": 10000,
+          "entities": 1000,
+          "historyHeapMb": 12.31
+        },
+        {
+          "kind": "checkpoint heap",
+          "checkpointEvery": 1000,
+          "edits": 10000,
+          "entities": 1000,
+          "historyHeapMb": 12.07
+        },
+        {
+          "kind": "pending limit",
+          "pendingLimit": 0,
+          "edits": 2000,
+          "entities": 1000,
+          "burstMsPerEdit": 0.4667,
+          "heapBeforeFlushMb": 2.92
+        },
+        {
+          "kind": "pending limit",
+          "pendingLimit": 16,
+          "edits": 2000,
+          "entities": 1000,
+          "burstMsPerEdit": 0.4526,
+          "heapBeforeFlushMb": 0.01
+        },
+        {
+          "kind": "pending limit",
+          "pendingLimit": 64,
+          "edits": 2000,
+          "entities": 1000,
+          "burstMsPerEdit": 0.4472,
+          "heapBeforeFlushMb": 0.24
+        },
+        {
+          "kind": "pending limit",
+          "pendingLimit": 256,
+          "edits": 2000,
+          "entities": 1000,
+          "burstMsPerEdit": 0.4215,
+          "heapBeforeFlushMb": 0.94
+        },
+        {
+          "kind": "pending limit",
+          "pendingLimit": 1024,
+          "edits": 2000,
+          "entities": 1000,
+          "burstMsPerEdit": 0.3025,
+          "heapBeforeFlushMb": 4.63
+        },
+        {
+          "kind": "serialization",
+          "historyEntries": 1000,
+          "entities": 1000,
+          "serializedCharacters": 326159,
+          "saveMs": 1.02,
+          "loadMs": 135.78
+        },
+        {
+          "kind": "serialization",
+          "historyEntries": 10000,
+          "entities": 1000,
+          "serializedCharacters": 2734742,
+          "saveMs": 8.54,
+          "loadMs": 1378.24
+        }
+      ]
+    }
+  },
+  "durationsMs": {
+    "recording": 124348,
+    "navigation": 71403,
+    "throughput": 6957,
+    "memory": 70966
+  }
+}

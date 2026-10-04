@@ -21,6 +21,7 @@ import {
 
 interface Scenario {
   readonly name: string;
+  readonly maxEntries?: number;
   readonly baseline: (store: PlainBenchStore, step: number) => void;
   readonly recorded: (store: TimelineBenchStore, step: number) => void;
 }
@@ -60,6 +61,12 @@ function scenarios(entityCount: number, kind: IdKind): readonly Scenario[] {
       recorded: (store, step) => store.remove(shapeId(step % entityCount, kind)),
     },
     {
+      name: 'updateEntity, history full at maxEntries 100',
+      maxEntries: fullHistoryLimit,
+      baseline: (store, step) => store.move(target, step),
+      recorded: (store, step) => store.move(target, step),
+    },
+    {
       name: 'transaction of ten updates',
       baseline: (store, step) => tenIds.forEach((id) => store.move(id, step)),
       recorded: (store, step) =>
@@ -69,6 +76,7 @@ function scenarios(entityCount: number, kind: IdKind): readonly Scenario[] {
 }
 
 const clearEvery = 400;
+const fullHistoryLimit = 100;
 
 async function measureRound(
   context: BenchContext,
@@ -78,11 +86,15 @@ async function measureRound(
 ): Promise<{ baseline: number; synchronous: number; total: number; totalMean: number }> {
   const shapes = makeShapes(entityCount, kind);
   const plain = createPlainStore(shapes);
-  const recorded = createTimelineStore(shapes);
-  const counters = { baseline: 0, synchronous: 0, total: 0 };
-  const run = (key: keyof typeof counters, operation: () => void) => {
-    counters[key] += 1;
-    if (counters[key] % clearEvery === 0) {
+  const recorded = createTimelineStore(shapes, { maxEntries: scenario.maxEntries });
+  const bounded = scenario.maxEntries !== undefined;
+  for (let index = 0; bounded && index < fullHistoryLimit + 10; index += 1) {
+    recorded.bump(index);
+  }
+  const steps = { baseline: 0, recorded: 0 };
+  const run = (key: keyof typeof steps, operation: () => void) => {
+    steps[key] += 1;
+    if (key === 'recorded' && !bounded && steps.recorded % clearEvery === 0) {
       recorded.clear();
     }
     operation();
@@ -91,15 +103,15 @@ async function measureRound(
   bench
     .add(
       'baseline',
-      timed(() => run('baseline', () => scenario.baseline(plain, counters.baseline))),
+      timed(() => run('baseline', () => scenario.baseline(plain, steps.baseline))),
     )
     .add(
       'synchronous',
-      timed(() => run('synchronous', () => scenario.recorded(recorded, counters.synchronous))),
+      timed(() => run('recorded', () => scenario.recorded(recorded, steps.recorded))),
     )
     .add(
       'total',
-      timedThenFlush(() => run('total', () => scenario.recorded(recorded, counters.total))),
+      timedThenFlush(() => run('recorded', () => scenario.recorded(recorded, steps.recorded))),
     );
   await bench.run();
   return {

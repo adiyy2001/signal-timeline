@@ -1,4 +1,5 @@
-import type { Patch } from './patch';
+import { applyPatch } from './apply';
+import type { Operation, Patch } from './patch';
 
 export type NodeId = number;
 
@@ -53,11 +54,43 @@ export interface RootInit<S> {
   readonly checkpoint: S;
 }
 
+const rootLagLimit = 256;
+
+class LaggingState<S> {
+  private operations: Operation[] = [];
+
+  constructor(private base: S) {}
+
+  get laggingOperations(): number {
+    return this.operations.length;
+  }
+
+  advance(patch: Patch): void {
+    for (const operation of patch) {
+      this.operations.push(operation);
+    }
+  }
+
+  reset(state: S): void {
+    this.base = state;
+    this.operations = [];
+  }
+
+  resolve(): S {
+    if (this.operations.length > 0) {
+      this.base = applyPatch(this.base, this.operations);
+      this.operations = [];
+    }
+    return this.base;
+  }
+}
+
 export class HistoryTree<S> {
   private readonly nodes = new Map<NodeId, HistoryNode<S>>();
   private readonly leaves = new Set<NodeId>();
   private rootNodeId: NodeId;
   private rootDepth = 0;
+  private laggingRoot: LaggingState<S> | undefined;
   private nextNodeId: NodeId;
 
   constructor(root: RootInit<S>, nextId = 1) {
@@ -177,17 +210,19 @@ export class HistoryTree<S> {
     return oldest;
   }
 
-  promoteOnlyChild(checkpoint: S, label: string): void {
+  promoteOnlyChild(label: string): void {
     const oldRoot = this.require(this.rootNodeId);
     if (oldRoot.children.length !== 1) {
       throw new RangeError('The root can only be advanced when it has exactly one child');
     }
     const child = this.require(oldRoot.children[0]);
+    const lagging = this.laggingRoot;
+    const childState = this.stateOfChild(child);
+    const lagBase = lagging === undefined ? oldRoot.checkpoint : undefined;
     child.parentId = undefined;
     child.forward = undefined;
     child.inverse = undefined;
     child.pending = undefined;
-    child.checkpoint = checkpoint;
     child.label = label;
     child.key = undefined;
     child.changedKeys = [];
@@ -197,6 +232,66 @@ export class HistoryTree<S> {
     this.leaves.delete(oldRoot.id);
     this.rootNodeId = child.id;
     this.rootDepth = child.depth;
+    this.laggingRoot = undefined;
+    this.installRootState(child, childState, lagging ?? this.startLagging(lagBase));
+  }
+
+  private startLagging(base: S | undefined): LaggingState<S> {
+    if (base === undefined) {
+      throw new RangeError('The root has no state to advance from');
+    }
+    return new LaggingState<S>(base);
+  }
+
+  private stateOfChild(child: HistoryNode<S>): { readonly state: S } | { readonly patch: Patch } {
+    if (child.checkpoint !== undefined) {
+      return { state: child.checkpoint };
+    }
+    if (child.pending !== undefined) {
+      return { state: child.pending.after };
+    }
+    if (child.forward === undefined) {
+      throw new RangeError('The new root has no way to a state');
+    }
+    return { patch: child.forward };
+  }
+
+  private installRootState(
+    root: HistoryNode<S>,
+    source: { readonly state: S } | { readonly patch: Patch },
+    lagging: LaggingState<S>,
+  ): void {
+    if ('state' in source) {
+      Object.defineProperty(root, 'checkpoint', {
+        value: source.state,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+      return;
+    }
+    const state = lagging;
+    state.advance(source.patch);
+    if (state.laggingOperations > rootLagLimit) {
+      Object.defineProperty(root, 'checkpoint', {
+        value: state.resolve(),
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+      return;
+    }
+    this.laggingRoot = state;
+    Object.defineProperty(root, 'checkpoint', {
+      get: () => state.resolve(),
+      set: (value: S | undefined) => {
+        if (value !== undefined) {
+          state.reset(value);
+        }
+      },
+      enumerable: true,
+      configurable: true,
+    });
   }
 
   pathBetween(from: NodeId, to: NodeId): TreePath {

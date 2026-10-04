@@ -101,12 +101,17 @@ describe('HistoryTree', () => {
     expect(tree.pathBetween(c.id, c.id)).toEqual({ up: [], down: [], ancestor: c.id });
   });
 
-  it('promotes the only child of the root', () => {
+  it('promotes the only child of the root and takes its state from the forward patch', () => {
     const tree = build();
-    const a = tree.createNode(tree.rootId, { label: 'a', timestamp: 1, forward: [], inverse: [] });
+    const a = tree.createNode(tree.rootId, {
+      label: 'a',
+      timestamp: 1,
+      forward: [{ op: 'replace', path: '', value: 5 }],
+      inverse: [{ op: 'replace', path: '', value: 0 }],
+    });
     const b = tree.createNode(a.id, { label: 'b', timestamp: 2 });
     const oldRoot = tree.rootId;
-    tree.promoteOnlyChild(5, 'start');
+    tree.promoteOnlyChild('start');
     expect(tree.rootId).toBe(a.id);
     expect(tree.get(oldRoot)).toBeUndefined();
     expect(tree.require(a.id)).toMatchObject({
@@ -120,12 +125,67 @@ describe('HistoryTree', () => {
     expect(tree.require(b.id).parentId).toBe(a.id);
   });
 
+  it('takes the state of a promoted child from its own checkpoint or its pending change', () => {
+    const withCheckpoint = build();
+    const first = withCheckpoint.createNode(withCheckpoint.rootId, {
+      label: 'a',
+      timestamp: 1,
+      checkpoint: 11,
+    });
+    withCheckpoint.promoteOnlyChild('start');
+    expect(withCheckpoint.require(first.id).checkpoint).toBe(11);
+
+    const withPending = build();
+    const second = withPending.createNode(withPending.rootId, {
+      label: 'a',
+      timestamp: 1,
+      pending: { before: 0, after: 12 },
+    });
+    withPending.promoteOnlyChild('start');
+    expect(withPending.require(second.id).checkpoint).toBe(12);
+  });
+
+  it('keeps the state of the root right when many promotions are queued behind it', () => {
+    const tree = build();
+    let parent = tree.rootId;
+    const total = 700;
+    for (let value = 1; value <= total; value += 1) {
+      parent = tree.createNode(parent, {
+        label: String(value),
+        timestamp: value,
+        forward: [{ op: 'replace', path: '', value }],
+        inverse: [{ op: 'replace', path: '', value: value - 1 }],
+      }).id;
+    }
+    const observed: number[] = [];
+    for (let value = 1; value <= total; value += 1) {
+      tree.promoteOnlyChild('start');
+      if (value % 97 === 0 || value === total) {
+        observed.push(tree.require(tree.rootId).checkpoint as number);
+      }
+    }
+    expect(observed).toEqual([97, 194, 291, 388, 485, 582, 679, 700]);
+  });
+
+  it('replaces the state of a root whose state is still queued', () => {
+    const tree = build();
+    const first = tree.createNode(tree.rootId, {
+      label: 'a',
+      timestamp: 1,
+      forward: [{ op: 'replace', path: '', value: 3 }],
+      inverse: [{ op: 'replace', path: '', value: 0 }],
+    });
+    tree.promoteOnlyChild('start');
+    tree.require(first.id).checkpoint = 40;
+    expect(tree.require(first.id).checkpoint).toBe(40);
+  });
+
   it('refuses to promote when the root has several children or none', () => {
     const tree = build();
-    expect(() => tree.promoteOnlyChild(0, 'x')).toThrow('exactly one child');
+    expect(() => tree.promoteOnlyChild('x')).toThrow('exactly one child');
     tree.createNode(tree.rootId, { label: 'a', timestamp: 1 });
     tree.createNode(tree.rootId, { label: 'b', timestamp: 2 });
-    expect(() => tree.promoteOnlyChild(0, 'x')).toThrow('exactly one child');
+    expect(() => tree.promoteOnlyChild('x')).toThrow('exactly one child');
   });
 
   it('iterates over every node', () => {

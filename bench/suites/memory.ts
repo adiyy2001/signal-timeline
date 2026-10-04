@@ -23,6 +23,7 @@ import {
 } from '../stores';
 
 const megabytes = 1024 * 1024;
+const defaultCheckpointInterval = 50;
 
 type Slices = Record<string, unknown>;
 
@@ -36,77 +37,64 @@ function sliceOf(store: PlainBenchStore | TimelineBenchStore): Slices {
   };
 }
 
-function memoryAdapter(): TimelinePersistenceAdapter & { text: string } {
-  const adapter = {
-    text: '',
-    load: () => null,
-    save: (value: string) => {
-      adapter.text = value;
-    },
-    remove: () => undefined,
-  };
-  return adapter;
-}
-
 function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-interface HeapReading {
-  readonly retained: number;
-}
-
-async function retainedBy(build: () => unknown): Promise<HeapReading> {
+async function retainedBy(build: () => unknown): Promise<number> {
   const before = await settleHeap();
   const held = build();
   const after = await settleHeap();
   void held;
-  return { retained: after - before };
+  return after - before;
 }
 
-async function historyHeap(
-  context: BenchContext,
+function editedPlainStore(edits: number, entityCount: number): PlainBenchStore {
+  const store = createPlainStore(makeShapes(entityCount, 'string'));
+  for (let index = 0; index < edits; index += 1) {
+    applyEdit(store, index, entityCount, 'string');
+  }
+  return store;
+}
+
+interface HistoryMeasurement {
+  readonly retainedBytes: number;
+  readonly serializedCharacters: number;
+}
+
+async function measureHistory(
+  edits: number,
+  entityCount: number,
   checkpointEvery: number,
-  edits: number,
-  entityCount: number,
-): Promise<number> {
-  const shapes = makeShapes(entityCount, 'string');
-  const plain = await retainedBy(() => {
-    const store = createPlainStore(shapes);
+): Promise<HistoryMeasurement> {
+  let serializedCharacters = 0;
+  const adapter: TimelinePersistenceAdapter = {
+    load: () => null,
+    save: (value) => {
+      serializedCharacters = value.length;
+    },
+    remove: () => undefined,
+  };
+  const retainedBytes = await retainedBy(() => {
+    const store = createTimelineStore(makeShapes(entityCount, 'string'), {
+      checkpointEvery,
+      persistence: { adapter, debounceMs: 0 },
+    });
     for (let index = 0; index < edits; index += 1) {
       applyEdit(store, index, entityCount, 'string');
     }
     return store;
+  }).then(async (bytes) => {
+    await wait(20);
+    return bytes;
   });
-  const timeline = await retainedBy(() => {
-    const store = createTimelineStore(shapes, { checkpointEvery });
-    for (let index = 0; index < edits; index += 1) {
-      applyEdit(store, index, entityCount, 'string');
-    }
-    return store;
-  });
-  context.log(
-    `heap, checkpointEvery ${checkpointEvery}: ${round((timeline.retained - plain.retained) / megabytes, 2)} MB`,
-  );
-  return timeline.retained - plain.retained;
+  return { retainedBytes, serializedCharacters };
 }
 
-async function snapshotHeapAndSize(
-  edits: number,
-  entityCount: number,
-): Promise<{ heapBytes: number; serializedCharacters: number }> {
-  const shapes = makeShapes(entityCount, 'string');
-  const plain = await retainedBy(() => {
-    const store = createPlainStore(shapes);
-    for (let index = 0; index < edits; index += 1) {
-      applyEdit(store, index, entityCount, 'string');
-    }
-    return store;
-  });
-  let serializedCharacters = 0;
+async function measureSnapshots(edits: number, entityCount: number): Promise<HistoryMeasurement> {
   const snapshots: Slices[] = [];
-  const withSnapshots = await retainedBy(() => {
-    const store = createPlainStore(shapes);
+  const retainedBytes = await retainedBy(() => {
+    const store = createPlainStore(makeShapes(entityCount, 'string'));
     snapshots.push(sliceOf(store));
     for (let index = 0; index < edits; index += 1) {
       applyEdit(store, index, entityCount, 'string');
@@ -114,37 +102,72 @@ async function snapshotHeapAndSize(
     }
     return store;
   });
+  let serializedCharacters = 0;
   for (const snapshot of snapshots) {
     serializedCharacters += JSON.stringify(snapshot).length;
   }
   snapshots.length = 0;
-  return {
-    heapBytes: withSnapshots.retained - plain.retained,
-    serializedCharacters,
+  return { retainedBytes, serializedCharacters };
+}
+
+async function sizeRow(context: BenchContext, entityCount: number): Promise<Row> {
+  const { historyEdits: edits } = context.settings;
+  const plain = await retainedBy(() => editedPlainStore(edits, entityCount));
+  const snapshots = await measureSnapshots(edits, entityCount);
+  const history = await measureHistory(edits, entityCount, defaultCheckpointInterval);
+  const snapshotHeap = snapshots.retainedBytes - plain;
+  const historyHeap = history.retainedBytes - plain;
+  const row: Row = {
+    kind: 'size and heap',
+    edits,
+    entities: entityCount,
+    checkpointEvery: defaultCheckpointInterval,
+    historySerializedCharacters: history.serializedCharacters,
+    snapshotsSerializedCharacters: snapshots.serializedCharacters,
+    serializedRatio: round(snapshots.serializedCharacters / history.serializedCharacters, 1),
+    historyHeapMb: round(historyHeap / megabytes, 2),
+    snapshotsHeapMb: round(snapshotHeap / megabytes, 2),
+    heapRatio: round(snapshotHeap / historyHeap, 1),
   };
+  context.log(
+    `${entityCount} entities: serialized ratio ${row['serializedRatio']}, heap ratio ${row['heapRatio']} (history ${row['historyHeapMb']} MB, snapshots ${row['snapshotsHeapMb']} MB)`,
+  );
+  return row;
 }
 
-async function historySerializedSize(edits: number, entityCount: number): Promise<number> {
-  const adapter = memoryAdapter();
-  const store = createTimelineStore(makeShapes(entityCount, 'string'), {
-    persistence: { adapter, debounceMs: 0 },
-  });
-  for (let index = 0; index < edits; index += 1) {
-    applyEdit(store, index, entityCount, 'string');
+async function checkpointRows(context: BenchContext): Promise<Row[]> {
+  const { settings } = context;
+  const edits = settings.historyEdits;
+  const entityCount = settings.checkpointEntityCount;
+  const plain = await retainedBy(() => editedPlainStore(edits, entityCount));
+  const rows: Row[] = [];
+  for (const checkpointEvery of settings.checkpointIntervals) {
+    const history = await measureHistory(edits, entityCount, checkpointEvery);
+    rows.push({
+      kind: 'checkpoint heap',
+      checkpointEvery,
+      edits,
+      entities: entityCount,
+      historyHeapMb: round((history.retainedBytes - plain) / megabytes, 2),
+      serializedCharacters: history.serializedCharacters,
+    });
+    context.log(`checkpointEvery ${checkpointEvery}: ${rows.at(-1)?.['historyHeapMb']} MB`);
   }
-  await wait(50);
-  if (adapter.text === '') {
-    throw new Error('The history was not saved');
-  }
-  return adapter.text.length;
+  return rows;
 }
 
-function engineWithHistory(
+interface Burst {
+  readonly engine: TimelineEngine<Slices>;
+  readonly flush: () => void;
+  readonly durationMs: number;
+}
+
+function burstOfEdits(
   edits: number,
   entityCount: number,
   pendingLimit: number,
   deferFlush: boolean,
-): { engine: TimelineEngine<Slices>; flush: () => void; durationMs: number } {
+): Burst {
   const store = createPlainStore(makeShapes(entityCount, 'string'));
   const queued: (() => void)[] = [];
   const engine = new TimelineEngine<Slices>(sliceOf(store), {
@@ -160,65 +183,76 @@ function engineWithHistory(
   return { engine, flush: () => queued.splice(0).forEach((task) => task()), durationMs };
 }
 
+async function measurePendingLimit(
+  context: BenchContext,
+  pendingLimit: number,
+  edits: number,
+  entityCount: number,
+): Promise<Row> {
+  await settleHeap();
+  const burst = burstOfEdits(edits, entityCount, pendingLimit, true);
+  const withPending = await settleHeap();
+  burst.flush();
+  const flushed = await settleHeap();
+  void burst.engine;
+  const row: Row = {
+    kind: 'pending limit',
+    pendingLimit,
+    edits,
+    entities: entityCount,
+    burstMsPerEdit: round(burst.durationMs / edits, 4),
+    pendingHeapMb: round((withPending - flushed) / megabytes, 2),
+  };
+  context.log(
+    `pending limit ${pendingLimit}: ${row['burstMsPerEdit']} ms per edit including the edit itself, ${row['pendingHeapMb']} MB held by pending entries`,
+  );
+  return row;
+}
+
 async function pendingLimitRows(context: BenchContext): Promise<Row[]> {
   const { settings } = context;
   const edits = settings.smoke ? 200 : 2_000;
-  const entityCount = settings.memoryEntityCount;
   const limits = settings.smoke ? [0, 64] : [0, 16, 64, 256, 1024];
   const rows: Row[] = [];
   for (const pendingLimit of limits) {
-    const baseline = await settleHeap();
-    const burst = engineWithHistory(edits, entityCount, pendingLimit, true);
-    const heldBeforeFlush = (await settleHeap()) - baseline;
-    burst.flush();
-    burst.engine.materializeAll();
-    rows.push({
-      pendingLimit,
-      edits,
-      entities: entityCount,
-      burstMsPerEdit: round(burst.durationMs / edits, 4),
-      heapBeforeFlushMb: round(heldBeforeFlush / megabytes, 2),
-    });
-    context.log(
-      `pending limit ${pendingLimit}: ${rows.at(-1)?.['burstMsPerEdit']} ms per edit, ${rows.at(-1)?.['heapBeforeFlushMb']} MB held before the flush`,
+    rows.push(
+      await measurePendingLimit(context, pendingLimit, edits, settings.checkpointEntityCount),
     );
   }
   return rows;
 }
 
-async function serializationRows(context: BenchContext): Promise<Row[]> {
+function serializationRow(context: BenchContext, edits: number): Row {
   const { settings } = context;
-  const sizes = settings.smoke ? [100] : [1_000, 10_000];
-  const rows: Row[] = [];
-  for (const edits of sizes) {
-    const { engine } = engineWithHistory(edits, settings.memoryEntityCount, 64, false);
-    engine.materializeAll();
-    const keys = Object.keys(engine.state).sort();
-    const rounds = settings.smoke ? 1 : 5;
-    const saveTimes: number[] = [];
-    const loadTimes: number[] = [];
-    let characters = 0;
-    for (let round = 0; round < rounds; round += 1) {
-      const saveStart = performance.now();
-      const text = serializeSnapshot(engine.snapshot(), keys);
-      saveTimes.push(performance.now() - saveStart);
-      characters = text.length;
-      const loadStart = performance.now();
-      TimelineEngine.restore(parseSnapshot(text, { keys }));
-      loadTimes.push(performance.now() - loadStart);
-    }
-    rows.push({
-      historyEntries: edits,
-      entities: settings.memoryEntityCount,
-      serializedCharacters: characters,
-      saveMs: round(Math.min(...saveTimes), 2),
-      loadMs: round(Math.min(...loadTimes), 2),
-    });
-    context.log(
-      `serialization at ${edits} entries: save ${rows.at(-1)?.['saveMs']} ms, load ${rows.at(-1)?.['loadMs']} ms, ${characters} characters`,
-    );
+  const entityCount = settings.checkpointEntityCount;
+  const { engine } = burstOfEdits(edits, entityCount, 64, false);
+  engine.materializeAll();
+  const keys = Object.keys(engine.state).sort();
+  const rounds = settings.smoke ? 1 : 5;
+  const saveTimes: number[] = [];
+  const loadTimes: number[] = [];
+  let characters = 0;
+  for (let attempt = 0; attempt < rounds; attempt += 1) {
+    const saveStart = performance.now();
+    const text = serializeSnapshot(engine.snapshot(), keys);
+    saveTimes.push(performance.now() - saveStart);
+    characters = text.length;
+    const loadStart = performance.now();
+    TimelineEngine.restore(parseSnapshot(text, { keys }));
+    loadTimes.push(performance.now() - loadStart);
   }
-  return rows;
+  const row: Row = {
+    kind: 'serialization',
+    historyEntries: edits,
+    entities: entityCount,
+    serializedCharacters: characters,
+    saveMs: round(Math.min(...saveTimes), 2),
+    loadMs: round(Math.min(...loadTimes), 2),
+  };
+  context.log(
+    `serialization at ${edits} entries: save ${row['saveMs']} ms, load ${row['loadMs']} ms, ${characters} characters`,
+  );
+  return row;
 }
 
 export async function runMemorySuite(context: BenchContext): Promise<SuiteResult> {
@@ -226,50 +260,23 @@ export async function runMemorySuite(context: BenchContext): Promise<SuiteResult
   if (!hasGarbageCollector()) {
     throw new Error('The memory suite needs a runtime started with garbage collection exposed');
   }
-  const edits = settings.historyEdits;
-  const entityCount = settings.memoryEntityCount;
-  const sizeRows: Row[] = [];
-  const history = await historySerializedSize(edits, entityCount);
-  const snapshot = await snapshotHeapAndSize(edits, entityCount);
-  const defaultHeap = await historyHeap(context, 50, edits, entityCount);
-  sizeRows.push({
-    kind: 'size and heap',
-    edits,
-    entities: entityCount,
-    historySerializedCharacters: history,
-    snapshotsSerializedCharacters: snapshot.serializedCharacters,
-    serializedRatio: round(snapshot.serializedCharacters / history, 1),
-    historyHeapMb: round(defaultHeap / megabytes, 2),
-    snapshotsHeapMb: round(snapshot.heapBytes / megabytes, 2),
-    heapRatio: round(snapshot.heapBytes / defaultHeap, 1),
-  });
-  context.log(
-    `serialized ratio ${sizeRows[0]['serializedRatio']}, heap ratio ${sizeRows[0]['heapRatio']}`,
-  );
-  const checkpointRows: Row[] = [];
-  for (const checkpointEvery of settings.checkpointIntervals) {
-    const bytes = await historyHeap(context, checkpointEvery, edits, entityCount);
-    checkpointRows.push({
-      kind: 'checkpoint heap',
-      checkpointEvery,
-      edits,
-      entities: entityCount,
-      historyHeapMb: round(bytes / megabytes, 2),
-    });
+  const rows: Row[] = [];
+  for (const entityCount of settings.memoryEntityCounts) {
+    rows.push(await sizeRow(context, entityCount));
   }
-  const pendingRows = await pendingLimitRows(context);
-  const serialization = await serializationRows(context);
+  rows.push(...(await checkpointRows(context)));
+  rows.push(...(await pendingLimitRows(context)));
+  for (const edits of settings.smoke ? [100] : [1_000, 10_000]) {
+    rows.push(serializationRow(context, edits));
+  }
   return {
-    description: `History after ${edits} small edits over ${entityCount} entities (70 percent entity moves, 20 percent counter, 10 percent nested view changes), compared with keeping a full snapshot of the tracked state after every edit. Serialized size is counted in characters of JSON (the content is ASCII, so characters are bytes). Heap is the retained size after a forced collection, with the same store without the feature subtracted. A snapshot is the references to the tracked slices after the edit, which is what a snapshot stack keeps.`,
+    description: `History after ${settings.historyEdits} small edits (70 percent entity moves, 20 percent counter, 10 percent nested view changes), compared with keeping a full snapshot of the tracked state after every edit. Serialized size is counted in characters of JSON (the content is ASCII, so characters are bytes). Heap is the retained size after forced collections, with the same store and edits without the feature subtracted. A snapshot is the set of references to the tracked slices after the edit, which is what a snapshot stack keeps. The checkpoint rows, the pending limit rows and the serialization rows use ${settings.checkpointEntityCount} entities.`,
     notes: [
       'Each updateEntity copies the whole entity map, so every snapshot keeps its own copy of the map. The history keeps one map per checkpoint instead.',
       'The size and heap ratios are the snapshot figure divided by the history figure.',
+      'The pending heap is what the pending entries of a burst hold before their patches exist: the heap with them minus the heap after the flush.',
+      'Serialization rows time engine.snapshot plus JSON text for the save, and parse, validate and restore for the load, best of five.',
     ],
-    rows: [
-      ...sizeRows,
-      ...checkpointRows,
-      ...pendingRows.map((row) => ({ kind: 'pending limit', ...row })),
-      ...serialization.map((row) => ({ kind: 'serialization', ...row })),
-    ],
+    rows,
   };
 }

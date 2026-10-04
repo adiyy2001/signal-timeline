@@ -8,7 +8,8 @@ export interface Settings {
   readonly entityCount: number;
   readonly historyEdits: number;
   readonly historyEntityCount: number;
-  readonly memoryEntityCount: number;
+  readonly memoryEntityCounts: readonly number[];
+  readonly checkpointEntityCount: number;
   readonly checkpointIntervals: readonly number[];
   readonly scalingCounts: readonly number[];
 }
@@ -23,7 +24,8 @@ export function settingsFor(smoke: boolean): Settings {
       entityCount: 300,
       historyEdits: 300,
       historyEntityCount: 100,
-      memoryEntityCount: 100,
+      memoryEntityCounts: [100],
+      checkpointEntityCount: 100,
       checkpointIntervals: [10, 50],
       scalingCounts: [100],
     };
@@ -36,7 +38,8 @@ export function settingsFor(smoke: boolean): Settings {
     entityCount: 10_000,
     historyEdits: 10_000,
     historyEntityCount: 1_000,
-    memoryEntityCount: 1_000,
+    memoryEntityCounts: [100, 1_000, 10_000],
+    checkpointEntityCount: 1_000,
     checkpointIntervals: [10, 25, 50, 100, 250, 1000],
     scalingCounts: [1_000, 50_000],
   };

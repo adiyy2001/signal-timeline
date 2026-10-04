@@ -568,6 +568,42 @@ describe('pruning', () => {
     assertTreeInvariants(engine, 50);
   });
 
+  it('keeps the root state right over a history that advances far past the queued limit', () => {
+    const { engine, edit, scheduler } = createFixture({ maxEntries: 5 });
+    const states: Doc[] = [initialDoc];
+    for (let value = 1; value <= 900; value += 1) {
+      edit(
+        value % 3 === 0
+          ? { items: [...engine.state.items.slice(-3), String(value)] }
+          : { count: value, meta: { title: `title ${value}` } },
+      );
+      states.push(engine.state);
+      scheduler.flush();
+      if (value % 211 === 0) {
+        expect(engine.stateAt(engine.rootId)).toEqual(states[value - 5]);
+      }
+    }
+    expect(engine.size).toBe(5);
+    expect(engine.stateAt(engine.rootId)).toEqual(states[895]);
+    engine.jumpTo(engine.rootId);
+    expect(engine.state).toEqual(states[895]);
+    engine.jumpTo(engine.currentId);
+    expect(engine.snapshot().root.state).toEqual(states[895]);
+    assertTreeInvariants(engine, 50);
+  });
+
+  it('keeps the root state right when the entries are still pending as the root advances', () => {
+    const { engine, edit } = createFixture({ maxEntries: 2, pendingLimit: 1000 });
+    const states: Doc[] = [initialDoc];
+    for (let value = 1; value <= 40; value += 1) {
+      edit({ count: value });
+      states.push(engine.state);
+    }
+    expect(engine.stateAt(engine.rootId)).toEqual(states[38]);
+    engine.materializeAll();
+    expect(engine.stateAt(engine.rootId)).toEqual(states[38]);
+  });
+
   it('removes the oldest leaves that are not the current entry first', () => {
     const { engine, edit } = createFixture({ maxEntries: 4 });
     const a = edit({ count: 1 })?.id ?? -1;
@@ -742,6 +778,43 @@ describe('invalid snapshots', () => {
       ],
     };
     expect(() => TimelineEngine.restore(broken)).toThrow('does not apply');
+  });
+
+  it('names the entry whose patch fails in the middle of a long chain', () => {
+    const { engine, edit } = createFixture({ checkpointEvery: 100 });
+    for (let value = 1; value <= 12; value += 1) {
+      edit({ count: value });
+    }
+    const snapshot = engine.snapshot();
+    const failing = snapshot.nodes[6];
+    const nodes = snapshot.nodes.map((node) =>
+      node.id === failing.id
+        ? { ...node, forward: [{ op: 'remove' as const, path: '/nowhere' }] }
+        : node,
+    );
+    expect(() => TimelineEngine.restore({ ...snapshot, nodes })).toThrow(
+      `Entry ${failing.id} does not apply`,
+    );
+  });
+
+  it('restores branches and checkpoints from patches applied in batches', () => {
+    const { engine, edit } = createFixture({ checkpointEvery: 4 });
+    const states = new Map<number, Doc>();
+    for (let value = 1; value <= 10; value += 1) {
+      states.set(edit({ count: value })?.id ?? -1, engine.state);
+    }
+    engine.jumpTo(5);
+    for (let value = 20; value <= 29; value += 1) {
+      states.set(edit({ count: value })?.id ?? -1, engine.state);
+    }
+    engine.jumpTo(3);
+    const restored = TimelineEngine.restore(engine.snapshot(), { checkpointEvery: 4 });
+    for (const [id, state] of states) {
+      expect(restored.stateAt(id)).toEqual(state);
+    }
+    expect(restored.currentId).toBe(3);
+    expect(restored.state).toEqual(engine.state);
+    assertTreeInvariants(restored, 4);
   });
 
   it('rejects a last visited child that is not a child', () => {

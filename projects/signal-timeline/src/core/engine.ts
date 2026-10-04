@@ -4,7 +4,7 @@ import { systemClock, type Clock } from './clock';
 import { diffPair, type PatchPair } from './diff';
 import { HistoryTree, type HistoryNode, type NodeId, type NodeView } from './history-tree';
 import { parsePointer } from './json-pointer';
-import { PatchError, type Patch } from './patch';
+import { PatchError, type Operation, type Patch } from './patch';
 
 export class TimelineError extends Error {
   constructor(message: string) {
@@ -80,6 +80,21 @@ function requirePositiveInteger(name: string, value: number): number {
     throw new TimelineError(`${name} must be a positive integer`);
   }
   return value;
+}
+
+interface SnapshotRoute<S> {
+  readonly base: S;
+  readonly entries: SnapshotNode[];
+}
+
+type HeldState<S> = { readonly state: S } | { readonly route: SnapshotRoute<S> };
+
+function extendRoute<S>(parent: HeldState<S>, entry: SnapshotNode): SnapshotRoute<S> {
+  if ('state' in parent) {
+    return { base: parent.state, entries: [entry] };
+  }
+  parent.route.entries.push(entry);
+  return parent.route;
 }
 
 function rootsChanged(before: object, after: object): boolean {
@@ -455,15 +470,26 @@ export class TimelineEngine<S extends object> {
       { id: root.id, label: root.label, timestamp: root.timestamp, checkpoint: root.state },
       snapshot.nextId,
     );
-    const states = new Map<NodeId, S>([[root.id, root.state]]);
+    const ordered = [...snapshot.nodes].sort((left, right) => left.id - right.id);
+    const childCounts = new Map<NodeId, number>();
+    for (const entry of ordered) {
+      childCounts.set(entry.parentId, (childCounts.get(entry.parentId) ?? 0) + 1);
+    }
+    const held = new Map<NodeId, HeldState<S>>([[root.id, { state: root.state }]]);
+    const remainingChildren = new Map<NodeId, number>([[root.id, childCounts.get(root.id) ?? 0]]);
     const requested = new Map<NodeId, NodeId | undefined>([[root.id, root.lastVisitedChild]]);
-    for (const entry of [...snapshot.nodes].sort((left, right) => left.id - right.id)) {
-      const parentState = states.get(entry.parentId);
-      if (parentState === undefined || entry.parentId >= entry.id || entry.id >= snapshot.nextId) {
+    let currentState: S | undefined = snapshot.currentId === root.id ? root.state : undefined;
+    for (const entry of ordered) {
+      const parent = held.get(entry.parentId);
+      if (parent === undefined || entry.parentId >= entry.id || entry.id >= snapshot.nextId) {
         throw new SnapshotError(`Entry ${entry.id} has no valid parent`);
       }
-      const state = this.replaySnapshotEntry(parentState, entry);
       const depth = tree.require(entry.parentId).depth + 1;
+      const childCount = childCounts.get(entry.id) ?? 0;
+      const checkpoint = isCheckpointDepth(depth, this.checkpointEvery);
+      const route = extendRoute(parent, entry);
+      const needsState = checkpoint || entry.id === snapshot.currentId || childCount !== 1;
+      const state = needsState ? this.resolveRoute(route) : undefined;
       try {
         tree.insertNode(entry.parentId, entry.id, {
           label: entry.label,
@@ -471,12 +497,19 @@ export class TimelineEngine<S extends object> {
           forward: entry.forward,
           inverse: entry.inverse,
           changedKeys: entry.changedKeys,
-          checkpoint: isCheckpointDepth(depth, this.checkpointEvery) ? state : undefined,
+          checkpoint: checkpoint ? state : undefined,
         });
       } catch (error) {
         throw new SnapshotError(error instanceof Error ? error.message : String(error));
       }
-      states.set(entry.id, state);
+      if (entry.id === snapshot.currentId) {
+        currentState = state;
+      }
+      this.holdForChildren(held, remainingChildren, entry.parentId);
+      if (childCount > 0) {
+        held.set(entry.id, state === undefined ? { route } : { state });
+        remainingChildren.set(entry.id, childCount);
+      }
       requested.set(entry.id, entry.lastVisitedChild);
     }
     for (const node of tree.all()) {
@@ -486,7 +519,6 @@ export class TimelineEngine<S extends object> {
       }
       node.lastVisitedChild = choice ?? node.children.at(-1);
     }
-    const currentState = states.get(snapshot.currentId);
     if (currentState === undefined) {
       throw new SnapshotError(`The current entry ${snapshot.currentId} does not exist`);
     }
@@ -499,6 +531,38 @@ export class TimelineEngine<S extends object> {
     this.gestureKeys.length = 0;
     this.prune();
     this.changed();
+  }
+
+  private holdForChildren(
+    held: Map<NodeId, HeldState<S>>,
+    remainingChildren: Map<NodeId, number>,
+    parentId: NodeId,
+  ): void {
+    const remaining = (remainingChildren.get(parentId) ?? 1) - 1;
+    if (remaining <= 0) {
+      held.delete(parentId);
+      remainingChildren.delete(parentId);
+    } else {
+      remainingChildren.set(parentId, remaining);
+    }
+  }
+
+  private resolveRoute(route: SnapshotRoute<S>): S {
+    try {
+      return applyPatch(
+        route.base,
+        route.entries.flatMap((entry) => entry.forward),
+      );
+    } catch (error) {
+      if (!(error instanceof PatchError)) {
+        throw error;
+      }
+      let state = route.base;
+      for (const entry of route.entries) {
+        state = this.replaySnapshotEntry(state, entry);
+      }
+      throw new SnapshotError(`Entries do not apply: ${error.message}`);
+    }
   }
 
   private replaySnapshotEntry(parentState: S, entry: SnapshotNode): S {
@@ -653,32 +717,50 @@ export class TimelineEngine<S extends object> {
     if (anchor.distance < up.length + down.length) {
       return this.replay(anchor.state, pathFromAnchor(this.tree, anchor, targetId));
     }
-    const lowered = up.reduce<S>((state, id) => this.stepBack(state, this.tree.require(id)), start);
-    return this.replay(lowered, down);
+    return this.replay(this.stepBackAll(start, up), down);
   }
 
   private replay(start: S, steps: readonly NodeId[]): S {
-    return steps.reduce<S>((state, id) => this.stepForward(state, this.tree.require(id)), start);
+    return this.walk(start, steps, (node) => ({
+      literal: node.pending?.after,
+      patch: node.forward,
+      missing: `Entry ${node.id} has no forward patch`,
+    }));
   }
 
-  private stepForward(state: S, node: HistoryNode<S>): S {
-    if (node.pending !== undefined) {
-      return node.pending.after;
-    }
-    if (node.forward === undefined) {
-      throw new TimelineError(`Entry ${node.id} has no forward patch`);
-    }
-    return applyPatch(state, node.forward);
+  private stepBackAll(start: S, steps: readonly NodeId[]): S {
+    return this.walk(start, steps, (node) => ({
+      literal: node.pending?.before,
+      patch: node.inverse,
+      missing: `Entry ${node.id} has no inverse patch`,
+    }));
   }
 
-  private stepBack(state: S, node: HistoryNode<S>): S {
-    if (node.pending !== undefined) {
-      return node.pending.before;
+  private walk(
+    start: S,
+    steps: readonly NodeId[],
+    choose: (node: HistoryNode<S>) => {
+      literal: S | undefined;
+      patch: Patch | undefined;
+      missing: string;
+    },
+  ): S {
+    let state = start;
+    let batch: Operation[] = [];
+    for (const id of steps) {
+      const { literal, patch, missing } = choose(this.tree.require(id));
+      if (literal !== undefined) {
+        state = literal;
+        batch = [];
+      } else if (patch === undefined) {
+        throw new TimelineError(missing);
+      } else {
+        for (const operation of patch) {
+          batch.push(operation);
+        }
+      }
     }
-    if (node.inverse === undefined) {
-      throw new TimelineError(`Entry ${node.id} has no inverse patch`);
-    }
-    return applyPatch(state, node.inverse);
+    return batch.length === 0 ? state : applyPatch(state, batch);
   }
 
   private rememberVisited(up: readonly NodeId[], down: readonly NodeId[]): void {
@@ -700,9 +782,7 @@ export class TimelineEngine<S extends object> {
   }
 
   private advanceRoot(): void {
-    const root = this.tree.require(this.tree.rootId);
-    const checkpoint = this.stateAt(root.children[0]);
-    this.tree.promoteOnlyChild(checkpoint, this.rootLabel);
+    this.tree.promoteOnlyChild(this.rootLabel);
   }
 
   private assertNoTransaction(action: string): void {

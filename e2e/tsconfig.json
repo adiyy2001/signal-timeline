@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "types": ["cypress", "cypress-axe", "node"],
+    "noEmit": true,
+    "isolatedModules": true,
+    "experimentalDecorators": false,
+    "importHelpers": false
+  },
+  "include": ["**/*.ts"]
+}

@@ -37,7 +37,7 @@ function recordingSection(result) {
     row.scenario,
     row.ids,
     row.baselineMs.toFixed(3),
-    `${row.synchronousOverheadMs.toFixed(3)} (${row.synchronousOverheadMinMs.toFixed(3)} to ${row.synchronousOverheadMaxMs.toFixed(3)})`,
+    `${row.synchronousOverheadMs.toFixed(3)} (rounds ${row.synchronousOverheadRoundMinMs.toFixed(3)} to ${row.synchronousOverheadRoundMaxMs.toFixed(3)}, mean ${row.synchronousOverheadMeanMs.toFixed(3)}, p90 ${row.synchronousOverheadP90Ms.toFixed(3)})`,
     row.totalOverheadMs.toFixed(3),
   ]);
   const scaling = rowsOf(
@@ -53,7 +53,7 @@ function recordingSection(result) {
   return [
     '### Recording overhead',
     '',
-    'Milliseconds per operation on a state with 10,000 entities. Synchronous overhead is the median over rounds of the p50 on the patchState call with the feature minus without it (range over the rounds in parentheses). Total overhead also includes computing the patches.',
+    'Milliseconds per operation on a state with 10,000 entities. Synchronous overhead is the median of paired differences, each pair timing the patchState call with and without the feature back to back in alternating order. Total overhead also includes computing the patches.',
     '',
     table(['operation', 'ids', 'plain store', 'synchronous overhead', 'total overhead'], rows),
     '',
@@ -61,6 +61,13 @@ function recordingSection(result) {
     '',
     table(['entities', 'plain store', 'synchronous overhead', 'total overhead'], scaling),
   ].join('\n');
+}
+
+function resolutionNote(result) {
+  if (result.runtime === 'node') {
+    return '';
+  }
+  return ' Chromium rounds timers to 0.1 ms here, so values under that read as zero and the Node numbers are the precise ones.';
 }
 
 function recordingVerdict(result) {
@@ -76,7 +83,7 @@ function recordingVerdict(result) {
     return 'No updateEntity row at 10,000 entities.';
   }
   const verdict = row.synchronousOverheadMs < recordingTargetMs ? 'met' : 'missed';
-  return `Recording target (under ${recordingTargetMs} ms on the patchState call, 10,000 entities with string ids, updateEntity): ${verdict}, median ${row.synchronousOverheadMs.toFixed(3)} ms, worst round ${row.synchronousOverheadMaxMs.toFixed(3)} ms. Computing the patches afterwards adds ${row.totalOverheadMs.toFixed(2)} ms.`;
+  return `Recording target (under ${recordingTargetMs} ms on the patchState call, 10,000 entities with string ids, updateEntity): ${verdict}, median ${row.synchronousOverheadMs.toFixed(3)} ms, worst round ${row.synchronousOverheadRoundMaxMs.toFixed(3)} ms. Computing the patches afterwards adds ${row.totalOverheadMs.toFixed(2)} ms.${resolutionNote(result)}`;
 }
 
 function sizeSection(result) {
@@ -173,6 +180,22 @@ function serializationSection(result) {
   ].join('\n');
 }
 
+function pendingSection(result) {
+  const rows = rowsOf(result, 'memory', (row) => row.kind === 'pending limit').map((row) => [
+    String(row.pendingLimit),
+    String(row.edits),
+    row.burstMsPerEdit.toFixed(3),
+    `${row.pendingHeapMb} MB`,
+  ]);
+  return [
+    '### Pending limit',
+    '',
+    'A burst of edits before the patches are computed, 1,000 entities.',
+    '',
+    table(['pending limit', 'edits', 'ms per edit', 'held by pending entries'], rows),
+  ].join('\n');
+}
+
 function throughputSection(result) {
   const rows = rowsOf(result, 'throughput').map((row) => [
     row.operation,
@@ -203,6 +226,8 @@ function render(result) {
     checkpointSection(result),
     '',
     serializationSection(result),
+    '',
+    pendingSection(result),
     '',
     throughputSection(result),
   ].join('\n');

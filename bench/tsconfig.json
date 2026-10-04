@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/bench",
+    "types": ["node"],
+    "noEmit": true,
+    "rootDir": "..",
+    "paths": { "signal-timeline": ["../projects/signal-timeline/src/public-api.ts"] }
+  },
+  "include": ["**/*.ts"]
+}

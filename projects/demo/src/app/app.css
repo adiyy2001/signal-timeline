@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -64px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+}
+
+.lead {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--muted);
+}
+
+.theme-button,
+.clear {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+.clear {
+  text-transform: none;
+}
+
+.theme-button:hover,
+.clear:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.theme-button:focus-visible,
+.clear:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.clear:disabled {
+  color: var(--muted);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.workspace {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.history {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.autosave {
+  flex: 1 1 260px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.autosave strong {
+  color: var(--text);
+}
+
+@media (min-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 460px);
+  }
+}

@@ -16,6 +16,14 @@ const projects = [
   'e2e/tsconfig.json',
 ].filter((project) => existsSync(join(root, project)));
 
+if (!existsSync(join(root, 'dist', 'signal-timeline', 'package.json'))) {
+  console.log('building the library, the demo type checks against the built package');
+  const build = spawnSync('pnpm', ['build'], { cwd: root, stdio: 'inherit' });
+  if (build.status !== 0) {
+    process.exit(build.status ?? 1);
+  }
+}
+
 let failed = false;
 for (const project of projects) {
   console.log(`typecheck ${project}`);

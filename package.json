@@ -10,8 +10,8 @@
     "ng": "ng",
     "lint": "eslint . && node tools/check-style.mjs",
     "typecheck": "node tools/typecheck.mjs",
-    "test": "ng test signal-timeline --no-watch",
-    "test:coverage": "ng test signal-timeline --no-watch --coverage && node tools/check-coverage.mjs",
+    "test": "ng test signal-timeline --no-watch && ng test demo --no-watch",
+    "test:coverage": "ng test signal-timeline --no-watch --coverage && ng test demo --no-watch --coverage && node tools/check-coverage.mjs",
     "test:types": "tsc --noEmit -p projects/signal-timeline/tsconfig.type-tests.json",
     "build": "ng build signal-timeline",
     "bench": "node bench/run.mjs all",
@@ -19,7 +19,11 @@
     "bench:chromium": "node bench/run.mjs chromium",
     "bench:smoke": "node bench/run.mjs all --smoke",
     "bench:report": "node tools/report-bench.mjs --write",
-    "pack:lib": "pnpm build && node tools/check-tarball.mjs"
+    "pack:lib": "pnpm build && node tools/check-tarball.mjs",
+    "build:demo": "ng build demo --configuration production",
+    "test:e2e": "node tools/run-e2e.mjs",
+    "lighthouse": "node tools/lighthouse.mjs",
+    "screenshots": "node tools/demo-screenshots.mjs"
   },
   "devDependencies": {
     "@angular/build": "22.2.1",

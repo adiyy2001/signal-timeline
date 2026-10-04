@@ -1,0 +1,46 @@
+<a class="skip-link" href="#editor">Skip to the drawing</a>
+
+<header class="top">
+  <div class="intro">
+    <h1>signal-timeline demo</h1>
+    <p class="lead">
+      A small vector editor on NgRx SignalStore. Every change lands in a branching history that you
+      can scrub, branch and jump through.
+    </p>
+  </div>
+  <button
+    type="button"
+    class="theme-button"
+    (click)="theme.next()"
+    [attr.aria-label]="'Color theme: ' + theme.choice() + '. Switch theme.'"
+  >
+    Theme: {{ theme.choice() }}
+  </button>
+</header>
+
+<main class="layout">
+  <section id="editor" class="workspace" aria-label="Drawing">
+    <demo-toolbar />
+    <demo-canvas />
+    <demo-inspector />
+  </section>
+
+  <section class="history" aria-label="History">
+    <st-devtools [timeline]="store" [theme]="theme.choice()" />
+    <div class="status">
+      <p class="autosave">
+        Autosave ran <strong data-test="autosave-count">{{ autosave.runs() }}</strong>
+        {{ autosave.runs() === 1 ? 'time' : 'times' }}. An effect with <code>skipReplay</code>
+        drives it, so undo, redo and jumps do not move it.
+      </p>
+      <button
+        type="button"
+        class="clear"
+        (click)="clearHistory()"
+        [disabled]="!store.canUndo() && !store.canRedo()"
+      >
+        Clear history
+      </button>
+    </div>
+  </section>
+</main>

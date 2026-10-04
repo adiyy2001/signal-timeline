@@ -1,0 +1,51 @@
+<section class="inspector" aria-labelledby="inspector-heading">
+  <h2 id="inspector-heading" class="heading">Inspector</h2>
+
+  @if (store.selectedShape(); as shape) {
+    <p class="summary">
+      <strong>{{ shape.name }}</strong>
+    </p>
+
+    <div class="fields">
+      @for (item of fields; track item.field) {
+        <label class="field">
+          <span>{{ item.label }}</span>
+          <input
+            type="number"
+            step="1"
+            [value]="shape[item.field]"
+            (change)="setField(shape, item.field, $event)"
+          />
+        </label>
+      }
+    </div>
+
+    <div class="swatches" role="group" aria-label="Fill color">
+      @for (key of palette; track key) {
+        <button
+          type="button"
+          class="swatch"
+          [class]="'fill-' + key"
+          [attr.aria-pressed]="shape.fill === key"
+          (click)="setFill(shape, key)"
+        >
+          <span class="dot" aria-hidden="true"></span>
+          {{ key }}
+        </button>
+      }
+    </div>
+  } @else if (store.selectedConnector(); as connector) {
+    <p class="summary">
+      <strong>Connector</strong>
+      <span class="muted">
+        from {{ store.shapeEntityMap()[connector.fromId]?.name }} to
+        {{ store.shapeEntityMap()[connector.toId]?.name }}
+      </span>
+    </p>
+    <p class="muted">
+      It follows its shapes. Delete it with the Delete key or the Delete button in the toolbar.
+    </p>
+  } @else {
+    <p class="muted">Nothing is selected. Pick a shape or a connector to edit it.</p>
+  }
+</section>

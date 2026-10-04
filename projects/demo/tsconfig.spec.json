@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../out-tsc/demo-spec",
+    "rootDir": "../..",
+    "types": ["vitest/globals"],
+    "paths": {
+      "signal-timeline": ["../signal-timeline/src/public-api.ts"],
+      "signal-timeline/devtools": ["../signal-timeline/devtools/src/public-api.ts"]
+    }
+  },
+  "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
+}

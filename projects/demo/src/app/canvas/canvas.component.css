@@ -1,0 +1,212 @@
+:host {
+  display: block;
+}
+
+.frame {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.surface {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 960 / 600;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.surface[data-tool='rectangle'],
+.surface[data-tool='ellipse'] {
+  cursor: crosshair;
+}
+
+.surface[data-tool='connector'] {
+  cursor: alias;
+}
+
+.surface:focus {
+  outline: none;
+}
+
+.surface:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+.paper {
+  fill: var(--paper);
+}
+
+.grid-dot {
+  fill: var(--grid);
+}
+
+.shape {
+  cursor: grab;
+  outline: none;
+}
+
+.shape .body {
+  fill: var(--shape-fill);
+  stroke: var(--shape-stroke);
+  stroke-width: 2;
+}
+
+.shape .name {
+  fill: var(--shape-ink);
+  font:
+    600 15px/1 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.shape.selected .body {
+  stroke-width: 3;
+}
+
+.shape.pending .body {
+  stroke-dasharray: 8 5;
+  stroke-width: 4;
+}
+
+.shape:focus-visible .body {
+  stroke: var(--focus);
+  stroke-width: 5;
+}
+
+.fill-sky {
+  --shape-fill: var(--fill-sky);
+}
+
+.fill-mint {
+  --shape-fill: var(--fill-mint);
+}
+
+.fill-amber {
+  --shape-fill: var(--fill-amber);
+}
+
+.fill-rose {
+  --shape-fill: var(--fill-rose);
+}
+
+.fill-violet {
+  --shape-fill: var(--fill-violet);
+}
+
+.fill-slate {
+  --shape-fill: var(--fill-slate);
+}
+
+.connector {
+  outline: none;
+}
+
+.connector-hit {
+  stroke: transparent;
+  stroke-width: 18;
+  cursor: pointer;
+}
+
+.connector-line {
+  stroke: var(--shape-stroke);
+  stroke-width: 2.5;
+  pointer-events: none;
+}
+
+.connector.selected .connector-line {
+  stroke-width: 4;
+  stroke-dasharray: 10 5;
+}
+
+.connector:focus-visible .connector-line {
+  stroke: var(--focus);
+  stroke-width: 5;
+}
+
+.arrow-head {
+  fill: var(--shape-stroke);
+}
+
+.selection {
+  pointer-events: none;
+}
+
+.selection-box {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.handle {
+  fill: var(--paper);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  cursor: nwse-resize;
+  pointer-events: all;
+}
+
+.handle[data-corner='ne'],
+.handle[data-corner='sw'] {
+  cursor: nesw-resize;
+}
+
+.draft,
+.draft-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 8 5;
+  pointer-events: none;
+}
+
+.empty {
+  fill: var(--muted);
+  font:
+    500 20px/1 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.hint {
+  margin: 8px 2px 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+@media (forced-colors: active) {
+  .shape .body {
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+
+  .shape:focus-visible .body,
+  .connector:focus-visible .connector-line {
+    stroke: Highlight;
+  }
+
+  .connector-line,
+  .arrow-head {
+    stroke: CanvasText;
+    fill: CanvasText;
+  }
+
+  .selection-box,
+  .handle {
+    stroke: Highlight;
+  }
+}

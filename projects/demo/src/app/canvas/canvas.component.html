@@ -1,0 +1,169 @@
+<div class="frame">
+  <svg
+    #surface
+    class="surface"
+    [attr.viewBox]="viewBox()"
+    role="group"
+    aria-label="Drawing canvas"
+    tabindex="-1"
+    [attr.data-tool]="store.tool()"
+    (pointerdown)="onPointerDown($event)"
+    (keydown)="onKeyDown($event)"
+  >
+    <defs>
+      <pattern
+        id="canvas-grid"
+        [attr.width]="gridSize"
+        [attr.height]="gridSize"
+        patternUnits="userSpaceOnUse"
+      >
+        <circle class="grid-dot" cx="2" cy="2" r="1.5" />
+      </pattern>
+      <marker
+        id="canvas-arrow"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="9"
+        markerHeight="9"
+        orient="auto-start-reverse"
+      >
+        <path class="arrow-head" d="M 0 0 L 10 5 L 0 10 z" />
+      </marker>
+    </defs>
+    <rect class="paper" [attr.width]="world.width" [attr.height]="world.height" />
+    <rect
+      class="paper-grid"
+      [attr.width]="world.width"
+      [attr.height]="world.height"
+      fill="url(#canvas-grid)"
+    />
+
+    @for (connector of connectorViews(); track connector.id) {
+      <g
+        class="connector"
+        role="button"
+        tabindex="0"
+        [attr.data-connector-id]="connector.id"
+        [attr.aria-label]="connector.label"
+        [attr.aria-pressed]="connector.selected"
+        [class.selected]="connector.selected"
+        (focus)="focusConnector(connector.id)"
+      >
+        <line
+          class="connector-hit"
+          [attr.x1]="connector.segment.x1"
+          [attr.y1]="connector.segment.y1"
+          [attr.x2]="connector.segment.x2"
+          [attr.y2]="connector.segment.y2"
+        />
+        <line
+          class="connector-line"
+          marker-end="url(#canvas-arrow)"
+          [attr.x1]="connector.segment.x1"
+          [attr.y1]="connector.segment.y1"
+          [attr.x2]="connector.segment.x2"
+          [attr.y2]="connector.segment.y2"
+        />
+      </g>
+    }
+
+    @for (view of shapeViews(); track view.shape.id) {
+      <g
+        class="shape"
+        role="button"
+        tabindex="0"
+        [class]="'fill-' + view.shape.fill"
+        [class.selected]="view.selected"
+        [class.pending]="view.pending"
+        [attr.data-shape-id]="view.shape.id"
+        [attr.aria-label]="view.label"
+        [attr.aria-pressed]="view.selected"
+        (focus)="focusShape(view.shape.id)"
+      >
+        @if (view.shape.kind === 'ellipse') {
+          <ellipse
+            class="body"
+            [attr.cx]="view.center.x"
+            [attr.cy]="view.center.y"
+            [attr.rx]="view.shape.width / 2"
+            [attr.ry]="view.shape.height / 2"
+          />
+        } @else {
+          <rect
+            class="body"
+            rx="6"
+            [attr.x]="view.shape.x"
+            [attr.y]="view.shape.y"
+            [attr.width]="view.shape.width"
+            [attr.height]="view.shape.height"
+          />
+        }
+        @if (view.showName) {
+          <text class="name" [attr.x]="view.center.x" [attr.y]="view.center.y">
+            {{ view.shape.name }}
+          </text>
+        }
+      </g>
+    }
+
+    @if (selectedRect(); as selected) {
+      <g class="selection" aria-hidden="true">
+        <rect
+          class="selection-box"
+          [attr.x]="selected.x - 4"
+          [attr.y]="selected.y - 4"
+          [attr.width]="selected.width + 8"
+          [attr.height]="selected.height + 8"
+        />
+        @for (corner of corners; track corner) {
+          <rect
+            class="handle"
+            [attr.data-corner]="corner"
+            [attr.x]="cornerPoint(selected, corner).x - handleSize / 2"
+            [attr.y]="cornerPoint(selected, corner).y - handleSize / 2"
+            [attr.width]="handleSize"
+            [attr.height]="handleSize"
+          />
+        }
+      </g>
+    }
+
+    @if (drawing(); as draft) {
+      @if (draft.kind === 'ellipse') {
+        <ellipse
+          class="draft"
+          [attr.cx]="draft.rect.x + draft.rect.width / 2"
+          [attr.cy]="draft.rect.y + draft.rect.height / 2"
+          [attr.rx]="draft.rect.width / 2"
+          [attr.ry]="draft.rect.height / 2"
+        />
+      } @else {
+        <rect
+          class="draft"
+          [attr.x]="draft.rect.x"
+          [attr.y]="draft.rect.y"
+          [attr.width]="draft.rect.width"
+          [attr.height]="draft.rect.height"
+        />
+      }
+    }
+
+    @if (connectorPreview(); as preview) {
+      <line
+        class="draft-line"
+        [attr.x1]="preview.x1"
+        [attr.y1]="preview.y1"
+        [attr.x2]="preview.x2"
+        [attr.y2]="preview.y2"
+      />
+    }
+
+    @if (isEmpty()) {
+      <text class="empty" [attr.x]="world.width / 2" [attr.y]="world.height / 2">
+        Pick a tool and drag here, or use Add rectangle
+      </text>
+    }
+  </svg>
+</div>
+<p class="hint" role="status">{{ hint() }}</p>

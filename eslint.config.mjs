@@ -55,6 +55,19 @@ export default tseslint.config(
     },
   },
   {
+    files: ['projects/demo/**/*.ts'],
+    rules: {
+      '@angular-eslint/directive-selector': [
+        'error',
+        { type: 'attribute', prefix: 'demo', style: 'camelCase' },
+      ],
+      '@angular-eslint/component-selector': [
+        'error',
+        { type: 'element', prefix: 'demo', style: 'kebab-case' },
+      ],
+    },
+  },
+  {
     files: ['projects/**/*.html'],
     extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
     rules: {},

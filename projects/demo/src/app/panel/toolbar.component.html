@@ -1,0 +1,31 @@
+<div class="toolbar" role="toolbar" aria-label="Editor tools">
+  <div class="group" role="group" aria-label="Tool">
+    @for (item of tools; track item.tool) {
+      <button
+        type="button"
+        class="tool"
+        [attr.aria-pressed]="store.tool() === item.tool"
+        (click)="selectTool(item.tool)"
+      >
+        {{ item.name }}
+      </button>
+    }
+  </div>
+
+  <div class="group" role="group" aria-label="Add without a pointer">
+    <button type="button" (click)="addShape('rectangle')">Add rectangle</button>
+    <button type="button" (click)="addShape('ellipse')">Add ellipse</button>
+  </div>
+
+  <div class="group" role="group" aria-label="History and removal">
+    <button type="button" [disabled]="!store.canUndo()" (click)="store.undo()">
+      Undo <kbd>Ctrl+Z</kbd>
+    </button>
+    <button type="button" [disabled]="!store.canRedo()" (click)="store.redo()">
+      Redo <kbd>Ctrl+Shift+Z</kbd>
+    </button>
+    <button type="button" [disabled]="!hasSelection()" (click)="store.deleteSelected()">
+      Delete <kbd>Del</kbd>
+    </button>
+  </div>
+</div>

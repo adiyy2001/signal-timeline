@@ -71,7 +71,7 @@ export interface EngineSnapshot<S> {
   readonly nextId: NodeId;
 }
 
-const defaultCheckpointEvery = 50;
+const defaultCheckpointEvery = 250;
 const defaultPendingLimit = 64;
 const defaultRootLabel = 'Initial state';
 

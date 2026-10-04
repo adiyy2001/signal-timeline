@@ -10,16 +10,19 @@ import {
 } from '../harness';
 import { applyEdit, createTimelineStore, makeShapes, type TimelineBenchStore } from '../stores';
 
-function buildHistory(
-  context: BenchContext,
-  checkpointEvery: number,
-): { store: TimelineBenchStore; entityCount: number } {
-  const { historyEdits, historyEntityCount } = context.settings;
-  const store = createTimelineStore(makeShapes(historyEntityCount, 'string'), { checkpointEvery });
-  for (let index = 0; index < historyEdits; index += 1) {
-    applyEdit(store, index, historyEntityCount, 'string');
+const defaultCheckpointInterval = 250;
+
+interface HistoryShape {
+  readonly edits: number;
+  readonly entities: number;
+}
+
+function buildHistory(shape: HistoryShape, checkpointEvery: number): { store: TimelineBenchStore } {
+  const store = createTimelineStore(makeShapes(shape.entities, 'string'), { checkpointEvery });
+  for (let index = 0; index < shape.edits; index += 1) {
+    applyEdit(store, index, shape.entities, 'string');
   }
-  return { store, entityCount: historyEntityCount };
+  return { store };
 }
 
 function seededSequence(seed: number): () => number {
@@ -68,9 +71,10 @@ function jumpCases(
 
 async function measureCheckpointInterval(
   context: BenchContext,
+  shape: HistoryShape,
   checkpointEvery: number,
 ): Promise<Row[]> {
-  const { store } = buildHistory(context, checkpointEvery);
+  const { store } = buildHistory(shape, checkpointEvery);
   await Promise.resolve();
   const entries = store.entries();
   const tipId = store.currentEntryId();
@@ -110,6 +114,8 @@ async function measureCheckpointInterval(
   for (const task of bench.tasks) {
     const latency = latencyOf(task);
     rows.push({
+      entities: shape.entities,
+      edits: shape.edits,
       checkpointEvery,
       operation: task.name,
       p50Ms: round(latency.p50Ms, 4),
@@ -124,7 +130,10 @@ async function measureCheckpointInterval(
 }
 
 async function measureEntriesSignal(context: BenchContext): Promise<Row> {
-  const { store } = buildHistory(context, 50);
+  const { store } = buildHistory(
+    { edits: context.settings.historyEdits, entities: context.settings.historyEntityCount },
+    defaultCheckpointInterval,
+  );
   await Promise.resolve();
   let counter = 0;
   const bench = createBench(context, 'entries signal');
@@ -139,7 +148,9 @@ async function measureEntriesSignal(context: BenchContext): Promise<Row> {
   await bench.run();
   const latency = latencyOf(bench.getTask('entries after one edit'));
   return {
-    checkpointEvery: 50,
+    entities: context.settings.historyEntityCount,
+    edits: context.settings.historyEdits,
+    checkpointEvery: defaultCheckpointInterval,
     operation: 'edit then read entries',
     p50Ms: round(latency.p50Ms, 4),
     p99Ms: round(latency.p99Ms, 4),
@@ -149,8 +160,13 @@ async function measureEntriesSignal(context: BenchContext): Promise<Row> {
 
 export async function runNavigationSuite(context: BenchContext): Promise<SuiteResult> {
   const rows: Row[] = [];
-  for (const checkpointEvery of context.settings.checkpointIntervals) {
-    rows.push(...(await measureCheckpointInterval(context, checkpointEvery)));
+  const { settings } = context;
+  const standard = { edits: settings.historyEdits, entities: settings.historyEntityCount };
+  for (const checkpointEvery of settings.checkpointIntervals) {
+    rows.push(...(await measureCheckpointInterval(context, standard, checkpointEvery)));
+  }
+  for (const checkpointEvery of settings.largeState.intervals) {
+    rows.push(...(await measureCheckpointInterval(context, settings.largeState, checkpointEvery)));
   }
   rows.push(await measureEntriesSignal(context));
   return {

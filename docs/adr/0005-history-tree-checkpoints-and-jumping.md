@@ -13,7 +13,7 @@ A change after an undo must start a branch and keep the redo history, like Vim's
 - Each node remembers its last visited child. `redo()` follows it. `redo(childId)` picks a branch.
 - A change records a node whose parent is the current node, makes it current, and makes it the last visited child of its parent. Nothing is ever deleted by recording.
 - Moving to a target: walk from the current node up to the lowest common ancestor applying inverse patches, then down applying forward patches. When that path is longer than the checkpoint interval, start from the nearest checkpoint on the root to target path and replay forward patches, which is at most one interval.
-- A checkpoint is added whenever a node's depth is a multiple of `checkpointEvery` (default decided by the benchmarks in M5, starting at 50). Checkpoints are references, so on a state with structural sharing they cost only the objects that changed since the previous one.
+- A checkpoint is added whenever a node's depth is a multiple of `checkpointEvery` (default 250, chosen from the M5 benchmarks, see ADR 0014). Checkpoints are references, so on a state with structural sharing they cost only the objects that changed since the previous one.
 - `maxEntries` counts non-root nodes. When it is exceeded the engine removes leaves that are not on the root to current path, oldest first. If every leaf is on that path (a linear history), it advances the root: the first node on the path becomes the new root, its checkpoint is built, and the other subtrees of the old root are dropped.
 - Invariants checked by tests after every operation: one parent per node, a single root, no cycles, the current pointer exists, every checkpoint equals the state reached by replaying from the root.
 

@@ -23,7 +23,7 @@ import {
 } from '../stores';
 
 const megabytes = 1024 * 1024;
-const defaultCheckpointInterval = 50;
+const defaultCheckpointInterval = 250;
 
 type Slices = Record<string, unknown>;
 
@@ -135,13 +135,15 @@ async function sizeRow(context: BenchContext, entityCount: number): Promise<Row>
   return row;
 }
 
-async function checkpointRows(context: BenchContext): Promise<Row[]> {
-  const { settings } = context;
-  const edits = settings.historyEdits;
-  const entityCount = settings.checkpointEntityCount;
+async function checkpointRowsFor(
+  context: BenchContext,
+  edits: number,
+  entityCount: number,
+  intervals: readonly number[],
+): Promise<Row[]> {
   const plain = await retainedBy(() => editedPlainStore(edits, entityCount));
   const rows: Row[] = [];
-  for (const checkpointEvery of settings.checkpointIntervals) {
+  for (const checkpointEvery of intervals) {
     const history = await measureHistory(edits, entityCount, checkpointEvery);
     rows.push({
       kind: 'checkpoint heap',
@@ -151,9 +153,29 @@ async function checkpointRows(context: BenchContext): Promise<Row[]> {
       historyHeapMb: round((history.retainedBytes - plain) / megabytes, 2),
       serializedCharacters: history.serializedCharacters,
     });
-    context.log(`checkpointEvery ${checkpointEvery}: ${rows.at(-1)?.['historyHeapMb']} MB`);
+    context.log(
+      `${entityCount} entities, checkpointEvery ${checkpointEvery}: ${rows.at(-1)?.['historyHeapMb']} MB`,
+    );
   }
   return rows;
+}
+
+async function checkpointRows(context: BenchContext): Promise<Row[]> {
+  const { settings } = context;
+  return [
+    ...(await checkpointRowsFor(
+      context,
+      settings.historyEdits,
+      settings.checkpointEntityCount,
+      settings.checkpointIntervals,
+    )),
+    ...(await checkpointRowsFor(
+      context,
+      settings.largeState.edits,
+      settings.largeState.entities,
+      settings.largeState.intervals,
+    )),
+  ];
 }
 
 interface Burst {

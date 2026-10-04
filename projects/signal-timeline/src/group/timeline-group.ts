@@ -17,7 +17,10 @@ type Composite = Record<string, Slices>;
 export type TimelineGroupOptions = {
   /** The most entries kept, the initial state excluded. */
   readonly maxEntries?: number;
-  /** A full copy of the state is kept at every entry whose depth is a multiple of this number. */
+  /**
+   * A full copy of the state is kept at every entry whose depth is a multiple of this number, so a jump
+   * replays at most this many entries. Defaults to 250.
+   */
   readonly checkpointEvery?: number;
   /** Changes within this many milliseconds of each other join one entry. */
   readonly coalesce?: { readonly windowMs?: number };

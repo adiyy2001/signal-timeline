@@ -17,7 +17,8 @@
     "bench": "node bench/run.mjs all",
     "bench:node": "node bench/run.mjs node",
     "bench:chromium": "node bench/run.mjs chromium",
-    "bench:smoke": "node bench/run.mjs all --smoke"
+    "bench:smoke": "node bench/run.mjs all --smoke",
+    "bench:report": "node tools/report-bench.mjs --write"
   },
   "devDependencies": {
     "@angular/build": "22.2.1",

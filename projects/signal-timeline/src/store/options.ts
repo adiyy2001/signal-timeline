@@ -60,7 +60,9 @@ export interface TimelineStandaloneOptions<State> extends TimelineSharedOptions<
    */
   readonly maxEntries?: number;
   /**
-   * A full copy of the state is kept at every entry whose depth is a multiple of this number.
+   * A full copy of the state is kept at every entry whose depth is a multiple of this number, so a jump
+   * replays at most this many entries. Defaults to 250. A lower number makes jumps cheaper on long
+   * histories and keeps more copies of the state in memory.
    */
   readonly checkpointEvery?: number;
   readonly coalesce?: TimelineCoalesceOptions<State>;

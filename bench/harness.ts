@@ -5,11 +5,17 @@ export interface Settings {
   readonly taskTimeMs: number;
   readonly warmupMs: number;
   readonly rounds: number;
+  readonly pairsPerRound: number;
   readonly entityCount: number;
   readonly historyEdits: number;
   readonly historyEntityCount: number;
   readonly memoryEntityCounts: readonly number[];
   readonly checkpointEntityCount: number;
+  readonly largeState: {
+    readonly entities: number;
+    readonly edits: number;
+    readonly intervals: readonly number[];
+  };
   readonly checkpointIntervals: readonly number[];
   readonly scalingCounts: readonly number[];
 }
@@ -21,11 +27,13 @@ export function settingsFor(smoke: boolean): Settings {
       taskTimeMs: 5,
       warmupMs: 0,
       rounds: 1,
+      pairsPerRound: 8,
       entityCount: 300,
       historyEdits: 300,
       historyEntityCount: 100,
       memoryEntityCounts: [100],
       checkpointEntityCount: 100,
+      largeState: { entities: 200, edits: 200, intervals: [10, 50] },
       checkpointIntervals: [10, 50],
       scalingCounts: [100],
     };
@@ -35,11 +43,13 @@ export function settingsFor(smoke: boolean): Settings {
     taskTimeMs: 250,
     warmupMs: 80,
     rounds: 5,
+    pairsPerRound: 80,
     entityCount: 10_000,
     historyEdits: 10_000,
     historyEntityCount: 1_000,
     memoryEntityCounts: [100, 1_000, 10_000],
     checkpointEntityCount: 1_000,
+    largeState: { entities: 10_000, edits: 3_000, intervals: [25, 50, 100, 250, 1000] },
     checkpointIntervals: [10, 25, 50, 100, 250, 1000],
     scalingCounts: [1_000, 50_000],
   };

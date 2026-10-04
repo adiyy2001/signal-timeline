@@ -1,14 +1,4 @@
-import {
-  createBench,
-  latencyOf,
-  median,
-  round,
-  timed,
-  timedThenFlush,
-  type BenchContext,
-  type Row,
-  type SuiteResult,
-} from '../harness';
+import { median, round, type BenchContext, type Row, type SuiteResult } from '../harness';
 import {
   createPlainStore,
   createTimelineStore,
@@ -78,12 +68,27 @@ function scenarios(entityCount: number, kind: IdKind): readonly Scenario[] {
 const clearEvery = 400;
 const fullHistoryLimit = 100;
 
-async function measureRound(
-  context: BenchContext,
+interface Pairs {
+  readonly baseline: number[];
+  readonly synchronous: number[];
+  readonly total: number[];
+}
+
+function percentile(values: readonly number[], fraction: number): number {
+  const sorted = [...values].sort((left, right) => left - right);
+  return sorted[Math.min(sorted.length - 1, Math.floor(fraction * sorted.length))];
+}
+
+function mean(values: readonly number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+async function measurePairs(
   scenario: Scenario,
   entityCount: number,
   kind: IdKind,
-): Promise<{ baseline: number; synchronous: number; total: number; totalMean: number }> {
+  pairCount: number,
+): Promise<Pairs> {
   const shapes = makeShapes(entityCount, kind);
   const plain = createPlainStore(shapes);
   const recorded = createTimelineStore(shapes, { maxEntries: scenario.maxEntries });
@@ -91,35 +96,37 @@ async function measureRound(
   for (let index = 0; bounded && index < fullHistoryLimit + 10; index += 1) {
     recorded.bump(index);
   }
-  const steps = { baseline: 0, recorded: 0 };
-  const run = (key: keyof typeof steps, operation: () => void) => {
-    steps[key] += 1;
-    if (key === 'recorded' && !bounded && steps.recorded % clearEvery === 0) {
+  await Promise.resolve();
+  const pairs: Pairs = { baseline: [], synchronous: [], total: [] };
+  const warmup = Math.min(20, pairCount);
+  for (let step = 1; step <= pairCount + warmup; step += 1) {
+    if (!bounded && step % clearEvery === 0) {
       recorded.clear();
     }
-    operation();
-  };
-  const bench = createBench(context, `recording ${scenario.name}`);
-  bench
-    .add(
-      'baseline',
-      timed(() => run('baseline', () => scenario.baseline(plain, steps.baseline))),
-    )
-    .add(
-      'synchronous',
-      timed(() => run('recorded', () => scenario.recorded(recorded, steps.recorded))),
-    )
-    .add(
-      'total',
-      timedThenFlush(() => run('recorded', () => scenario.recorded(recorded, steps.recorded))),
-    );
-  await bench.run();
-  return {
-    baseline: latencyOf(bench.getTask('baseline')).p50Ms,
-    synchronous: latencyOf(bench.getTask('synchronous')).p50Ms,
-    total: latencyOf(bench.getTask('total')).p50Ms,
-    totalMean: latencyOf(bench.getTask('total')).meanMs,
-  };
+    const plainFirst = step % 2 === 0;
+    let plainDuration = 0;
+    let recordedDuration = 0;
+    let flushDuration = 0;
+    for (const turn of plainFirst ? ['plain', 'recorded'] : ['recorded', 'plain']) {
+      const start = performance.now();
+      if (turn === 'plain') {
+        scenario.baseline(plain, step);
+        plainDuration = performance.now() - start;
+        await Promise.resolve();
+      } else {
+        scenario.recorded(recorded, step);
+        recordedDuration = performance.now() - start;
+        await Promise.resolve();
+        flushDuration = performance.now() - start - recordedDuration;
+      }
+    }
+    if (step > warmup) {
+      pairs.baseline.push(plainDuration);
+      pairs.synchronous.push(recordedDuration - plainDuration);
+      pairs.total.push(recordedDuration + flushDuration - plainDuration);
+    }
+  }
+  return pairs;
 }
 
 async function measureScenario(
@@ -128,25 +135,31 @@ async function measureScenario(
   entityCount: number,
   kind: IdKind,
 ): Promise<Row> {
-  const rounds = [];
-  for (let round = 0; round < context.settings.rounds; round += 1) {
-    rounds.push(await measureRound(context, scenario, entityCount, kind));
+  const { settings } = context;
+  const pairCount = settings.smoke ? 8 : settings.pairsPerRound;
+  const rounds: Pairs[] = [];
+  for (let attempt = 0; attempt < settings.rounds; attempt += 1) {
+    rounds.push(await measurePairs(scenario, entityCount, kind, pairCount));
   }
-  const synchronousDeltas = rounds.map((round) => round.synchronous - round.baseline);
-  const totalDeltas = rounds.map((round) => round.total - round.baseline);
+  const synchronous = rounds.flatMap((entry) => entry.synchronous);
+  const total = rounds.flatMap((entry) => entry.total);
+  const medians = rounds.map((entry) => median(entry.synchronous));
   const row: Row = {
     scenario: scenario.name,
     ids: kind,
     entities: entityCount,
-    baselineMs: round(median(rounds.map((entry) => entry.baseline)), 4),
-    synchronousOverheadMs: round(median(synchronousDeltas), 4),
-    synchronousOverheadMinMs: round(Math.min(...synchronousDeltas), 4),
-    synchronousOverheadMaxMs: round(Math.max(...synchronousDeltas), 4),
-    totalOverheadMs: round(median(totalDeltas), 4),
-    rounds: rounds.length,
+    baselineMs: round(median(rounds.flatMap((entry) => entry.baseline)), 4),
+    synchronousOverheadMs: round(median(synchronous), 4),
+    synchronousOverheadMeanMs: round(mean(synchronous), 4),
+    synchronousOverheadP90Ms: round(percentile(synchronous, 0.9), 4),
+    synchronousOverheadRoundMinMs: round(Math.min(...medians), 4),
+    synchronousOverheadRoundMaxMs: round(Math.max(...medians), 4),
+    totalOverheadMs: round(median(total), 4),
+    totalOverheadMeanMs: round(mean(total), 4),
+    pairs: synchronous.length,
   };
   context.log(
-    `recording ${scenario.name} (${kind} ids, ${entityCount}): baseline ${row['baselineMs']} ms, synchronous overhead ${row['synchronousOverheadMs']} ms, total overhead ${row['totalOverheadMs']} ms`,
+    `recording ${scenario.name} (${kind} ids, ${entityCount}): baseline ${row['baselineMs']} ms, synchronous overhead median ${row['synchronousOverheadMs']} ms mean ${row['synchronousOverheadMeanMs']} ms, total overhead median ${row['totalOverheadMs']} ms`,
   );
   return row;
 }
@@ -169,10 +182,11 @@ export async function runRecordingSuite(context: BenchContext): Promise<SuiteRes
   }
   return {
     description:
-      'Cost of recording one change. Each round runs the same operation on a store without the feature (baseline) and on a store with it, in one tinybench run. Synchronous overhead is the p50 on the patchState call minus the baseline p50, total overhead also includes the microtask that computes the patches. The reported value is the median over the rounds.',
+      'Cost of recording one change. Every pair applies the same operation to a store without the feature and to a store with it, back to back, and alternates which one goes first. The overhead of a pair is the difference of the two durations: synchronous is the time of the patchState call, total also includes the microtask that computes the patches. Pairs from all rounds are pooled and the median and mean are reported. The two stores are timed in the same loop because two separate timing runs differ by more than the effect (the plain operation takes milliseconds and varies with garbage collection).',
     notes: [
-      'The timeline store is cleared every 400 operations outside the timed region to keep the history short.',
+      'The timeline store is cleared every 400 operations outside the timed region to keep the history short, except in the history full scenario.',
       'A transaction computes its patch when it commits, so its synchronous and total overhead are the same work.',
+      'Median hides the occasional pause. The mean and the 90th percentile of the pairs are in the result file.',
     ],
     rows,
   };

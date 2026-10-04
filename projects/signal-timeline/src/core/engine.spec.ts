@@ -569,7 +569,7 @@ describe('pruning', () => {
   });
 
   it('keeps the root state right over a history that advances far past the queued limit', () => {
-    const { engine, edit, scheduler } = createFixture({ maxEntries: 5 });
+    const { engine, edit, scheduler } = createFixture({ maxEntries: 5, checkpointEvery: 50 });
     const states: Doc[] = [initialDoc];
     for (let value = 1; value <= 900; value += 1) {
       edit(

@@ -13,7 +13,8 @@ The brief also requires a Lighthouse accessibility score of 95 or more. Lighthou
 - The published package has no runtime dependency except `tslib`, and peers that are MIT or Apache 2.0 (Angular, NgRx, RxJS).
 - Development tools may include MPL-2.0 code when it is not modified, not copied into the repo and not part of the published package. `axe-core` is used through `cypress-axe` and through Lighthouse for accessibility checks.
 - `CREDITS.md` lists every third-party package that is part of the build, test or docs pipeline with its license, and marks `axe-core` as MPL-2.0, development only.
-- `tools/check-licenses.mjs` reads the license field of every installed package and fails on anything outside MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, BlueOak-1.0.0, CC0-1.0, Python-2.0 and the one named exception.
+- `tools/check-licenses.mjs` reads the license field of every installed package (727 of them on 2026-10-04) and fails on anything outside MIT, MIT-0, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, BlueOak-1.0.0, CC0-1.0, Unlicense, Python-2.0 and the named exceptions. It understands SPDX expressions with `OR` and `AND`.
+- The full scan found three more packages that need a named exception, all development only and unmodified: `lightningcss` and its Linux binary (MPL-2.0, pulled in by Vite inside `@angular/build`), and `caniuse-lite` (CC-BY-4.0 browser data read by browserslist). None of them is copied into the repo or into the published package. `MIT-0` and `Unlicense` are permissive and were added to the allowed list.
 
 ## Alternatives
 
@@ -23,4 +24,4 @@ The brief also requires a Lighthouse accessibility score of 95 or more. Lighthou
 ## Consequences
 
 - The README says in one line that the accessibility checks use `axe-core` under MPL-2.0 as a development tool.
-- Adrian can veto the exception; removing `cypress-axe` leaves Lighthouse as the only accessibility check.
+- Adrian can veto the `axe-core` exception; removing `cypress-axe` leaves Lighthouse as the only accessibility check. The other exceptions come with Angular's own build tool, so they cannot be removed without dropping Angular.

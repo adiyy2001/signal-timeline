@@ -1,6 +1,6 @@
 # 0012 Package layout, API docs and release
 
-Status: accepted, 2026-10-04
+Status: accepted, 2026-10-04, outcome of the checks added on 2026-10-04 (see Outcome)
 
 ## Context
 
@@ -25,3 +25,13 @@ The brief wants an ng-packagr build with a `/devtools` secondary entry point, a 
 
 - Both entry points share one version and one changelog.
 - Adrian has to add an `NPM_TOKEN` secret, create the repo and push before any workflow runs. The final report lists the commands.
+
+## Outcome
+
+Checked while building the release tooling:
+
+- `publishConfig.directory` works under pnpm 12. `pnpm pack` and `pnpm publish --dry-run --json` run in `projects/signal-timeline` pack the contents of `dist/signal-timeline`, so changesets can publish the compiled output and the fallback script is not needed. The library folder is the only workspace package (`pnpm-workspace.yaml`), which is what lets changesets find it.
+- ng-packagr copies `publishConfig` into the built manifest, including the `directory` key, which would point nowhere inside the tarball. `tools/finalize-package.mjs` runs after every library build, removes that key and copies `README.md` and `LICENSE` into `dist/signal-timeline`, because the ng-packagr `assets` option refuses files outside the project root.
+- `pnpm release` runs `node tools/compat.mjs 21 --release`, which builds the library in `.compat/ng21` with Angular 21.2.24 and copies the result to `dist/signal-timeline`, and then `changeset publish`. `pnpm pack:release` does the same and checks the tarball.
+- `tools/consumer-smoke.mjs` generates a fresh Angular app with the CLI of the given major in the system temp folder, installs the tarball and `@ngrx/signals` of that major, builds for production and runs three tests that use `withTimeline` and `st-devtools`. The tarball built with Angular 21 passed in an Angular 21 app and in an Angular 22 app, which confirms the rule in ADR 0002. The peer range stays `^21 || ^22`.
+- `@arethetypeswrong/cli` runs with the `esm-only` profile. The package is ESM only, so `require` from CommonJS and the `node10` resolution are ignored. The consequence for users: the `signal-timeline/devtools` subpath needs `moduleResolution` of `bundler` or `node16` and newer, which every Angular 21 and 22 project already has.

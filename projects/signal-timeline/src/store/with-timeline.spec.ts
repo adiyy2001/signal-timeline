@@ -587,7 +587,7 @@ describe('withTimeline', () => {
       warn.mockRestore();
     });
 
-    it('warns when a later change introduces non plain data', () => {
+    it('warns when a later change introduces non plain data', async () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const Store = signalStore(
         { providedIn: 'root' },
@@ -597,8 +597,10 @@ describe('withTimeline', () => {
       );
       const store = TestBed.inject(Store);
       store.set(new Map());
+      await Promise.resolve();
       expect(warn).toHaveBeenCalledTimes(1);
       store.set(new Set());
+      await Promise.resolve();
       expect(warn).toHaveBeenCalledTimes(1);
       warn.mockRestore();
     });

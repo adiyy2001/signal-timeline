@@ -21,12 +21,15 @@ export function defaultLabel(keys: readonly string[]): string {
 export class Recorder<Full extends object> {
   private previous: Full;
   private readonly warned = new Set<string>();
+  private lastRecordedId: number | undefined;
   private idleTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(private readonly config: RecorderConfig<Full>) {
     this.previous = config.initial;
     if (isDevMode()) {
-      this.warnOnNonPlain(config.trackedKeys, config.initial);
+      for (const key of config.trackedKeys) {
+        this.warnOnNonPlain(key, (config.initial as Record<string, unknown>)[key]);
+      }
     }
   }
 
@@ -66,8 +69,9 @@ export class Recorder<Full extends object> {
     if (result === undefined) {
       return;
     }
+    this.lastRecordedId = result.id;
     if (isDevMode()) {
-      this.warnOnNonPlain(changedKeys, state);
+      queueMicrotask(() => this.checkRecordedEntry(result.id));
     }
     this.sealWhenIdle();
   }
@@ -86,6 +90,9 @@ export class Recorder<Full extends object> {
     this.idleTimer = setTimeout(() => {
       this.idleTimer = undefined;
       runtime.engine.seal();
+      if (isDevMode() && this.lastRecordedId !== undefined) {
+        this.checkRecordedEntry(this.lastRecordedId);
+      }
     }, idleSealMs);
   }
 
@@ -105,19 +112,30 @@ export class Recorder<Full extends object> {
     );
   }
 
-  private warnOnNonPlain(keys: readonly string[], state: Full): void {
-    for (const key of keys) {
-      if (this.warned.has(key)) {
-        continue;
+  private checkRecordedEntry(id: number): void {
+    const node = this.config.runtime.engine.node(id);
+    if (node === undefined || node.open) {
+      return;
+    }
+    const patches = this.config.runtime.engine.patchOf(id);
+    for (const operation of patches?.forward ?? []) {
+      if (operation.op !== 'remove') {
+        this.warnOnNonPlain(operation.path.split('/')[1] ?? '', operation.value);
       }
-      const problem = findNonPlainValue((state as Record<string, unknown>)[key]);
-      if (problem !== undefined) {
-        this.warned.add(key);
-        console.warn(
-          `signal-timeline: the tracked key "${key}" is not plain data (${problem}). ` +
-            'History needs plain objects, arrays and primitives. Add the key to "skip" or store plain data.',
-        );
-      }
+    }
+  }
+
+  private warnOnNonPlain(key: string, value: unknown): void {
+    if (this.warned.has(key)) {
+      return;
+    }
+    const problem = findNonPlainValue(value);
+    if (problem !== undefined) {
+      this.warned.add(key);
+      console.warn(
+        `signal-timeline: the tracked key "${key}" is not plain data (${problem}). ` +
+          'History needs plain objects, arrays and primitives. Add the key to "skip" or store plain data.',
+      );
     }
   }
 }

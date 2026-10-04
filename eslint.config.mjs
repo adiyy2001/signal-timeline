@@ -18,9 +18,9 @@ export default tseslint.config(
       'C:*/**',
     ],
   },
-  js.configs.recommended,
-  ...tseslint.configs.strict,
   {
+    files: ['**/*.{ts,mjs,js}'],
+    extends: [js.configs.recommended, ...tseslint.configs.strict],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',

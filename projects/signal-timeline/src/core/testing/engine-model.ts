@@ -247,6 +247,9 @@ export class ModelHarness {
     const target = ids[pick % ids.length];
     this.engine.jumpTo(target);
     this.syncLive();
+    if (this.engine.node(target) === undefined) {
+      return;
+    }
     require(this.engine.currentId === target, 'jumpTo did not reach its target');
     sameJson(
       this.engine.state,

@@ -452,6 +452,25 @@ describe('coalescing by key', () => {
   });
 });
 
+describe('jumping to an open entry that sealing removes', () => {
+  it('returns without a move and keeps the state', () => {
+    const { engine, edit } = createFixture();
+    edit({ count: 1 }, 'first');
+    edit({ items: ['a'] }, 'open', 'drag');
+    edit({ items: [] }, 'open', 'drag');
+    const openId = engine.currentId;
+    expect(engine.jumpTo(openId)).toBeUndefined();
+    expect(engine.node(openId)).toBeUndefined();
+    expect(engine.state).toEqual({ ...initialDoc, count: 1 });
+    expect(engine.node(engine.currentId)?.label).toBe('first');
+  });
+
+  it('still rejects an id that never existed', () => {
+    const { engine } = createFixture();
+    expect(() => engine.jumpTo(999)).toThrow('Unknown entry 999');
+  });
+});
+
 describe('transactions', () => {
   it('turns several changes into one entry', () => {
     const { engine, edit } = createFixture();

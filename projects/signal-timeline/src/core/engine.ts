@@ -255,7 +255,7 @@ export class TimelineEngine<S extends object> {
       throw new TimelineError(`Unknown entry ${id}`);
     }
     this.seal();
-    return this.moveTo(id);
+    return this.tree.get(id) === undefined ? undefined : this.moveTo(id);
   }
 
   begin(state: S): void {

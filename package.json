@@ -27,7 +27,14 @@
     "screenshots": "node tools/demo-screenshots.mjs",
     "docs:api": "typedoc",
     "build:site": "node tools/build-site.mjs",
-    "verify": "node tools/verify.mjs"
+    "verify": "node tools/verify.mjs",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "node tools/compat.mjs 21 --release && changeset publish",
+    "licenses": "node tools/check-licenses.mjs",
+    "compat": "node tools/compat.mjs",
+    "consumer": "node tools/consumer-smoke.mjs",
+    "verify:must-haves": "node tools/verify-must-haves.mjs"
   },
   "devDependencies": {
     "@angular/build": "22.2.1",

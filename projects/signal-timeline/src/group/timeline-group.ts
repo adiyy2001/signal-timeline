@@ -141,6 +141,11 @@ export class TimelineGroup implements TimelineSource, TimelineMethods {
     this.runtime.endCoalescing();
   }
 
+  /**
+   * Adds a store to the group. `withTimeline` calls it, application code does not.
+   *
+   * @internal
+   */
   join(member: GroupMember): GroupMembership {
     const { storeKey } = member;
     this.admit(storeKey);

@@ -25,3 +25,13 @@ Status: accepted, 2026-10-04
 - Entries in a group show which stores they touched, derived from the first path segment of the patch.
 - The hot path stays O(number of stores) because the composite is rebuilt by shallow copy.
 - A store that joins late starts at its current state; history before it joined does not include it. The docs say so.
+
+## Decisions made in milestone M4
+
+- The group is a class, `TimelineGroup`, built by `provideTimelineGroup(options)` with a factory provider. It reuses the store runtime over the composite state, so undo, redo, jump, transactions, coalescing and signals behave exactly as in one store. A member store gets the group runtime as its own, so its `undo` and `transaction` are the group's.
+- The limits belong to the group: `maxEntries`, `checkpointEvery`, `coalesce.windowMs` and `persistence` are options of `provideTimelineGroup`, and a member store that passes them throws a `TimelineError`. The types forbid them too. A member can still set `label`, `coalesce.key`, `track` and `skip`.
+- A store that joins late: the engine adds the store key to the current state and to every checkpoint and pending entry, with the store's slice at join time. History before the join therefore treats that slice as constant, and undoing past the join leaves the store at its join time state, whichever way the engine reaches the target (patches or a checkpoint). Without that step a jump through a checkpoint and a jump through patches would disagree.
+- Group persistence needs `stores`, the list of store keys. The history is restored once all of them have joined, and nothing is saved before that, so a partial group cannot overwrite a complete saved history. A store with a key outside the list is rejected.
+- A destroyed store leaves the group: it is no longer written to, and its key is retired. Joining again with the same key throws, because the old history refers to a slice the new store never had.
+- Replay writes every store in join order, collecting errors instead of stopping at the first. If any store throws (a `watchState` callback that rejects the value, for example), the runtime writes the previous slices back to every store, moves the engine back to where it was and rethrows the first error. This is the same path a single store uses. The writes of the revert are best effort.
+- Entries carry `changedKeys`, which in a group are the store keys the entry touched. The keys come from a reference comparison of the root slices at record time, so they are cheap, and they are persisted.

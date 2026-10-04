@@ -202,6 +202,14 @@ describe('withTimeline', () => {
       expect(store.canUndo()).toBe(false);
     });
 
+    it('counts entry depth from the current start after the start moved', () => {
+      const store = setup({ maxEntries: 3 });
+      for (let value = 1; value <= 6; value += 1) {
+        store.setCount(value);
+      }
+      expect(store.entries().map((entry) => entry.depth)).toEqual([0, 1, 2, 3]);
+    });
+
     it('rejects a maxEntries below one', () => {
       expect(() => setup({ maxEntries: 0 })).toThrow(TimelineError);
     });

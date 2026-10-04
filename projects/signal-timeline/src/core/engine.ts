@@ -54,6 +54,7 @@ export interface SnapshotNode {
   readonly timestamp: number;
   readonly forward: Patch;
   readonly inverse: Patch;
+  readonly changedKeys: readonly string[];
   readonly lastVisitedChild: NodeId | undefined;
 }
 
@@ -187,6 +188,10 @@ export class TimelineEngine<S extends object> {
 
   get nextId(): NodeId {
     return this.tree.nextId;
+  }
+
+  get rootDepth(): number {
+    return this.tree.rootDepthOffset;
   }
 
   get size(): number {
@@ -423,6 +428,7 @@ export class TimelineEngine<S extends object> {
           timestamp: node.timestamp,
           forward: pair.forward,
           inverse: pair.inverse,
+          changedKeys: node.changedKeys,
           lastVisitedChild: node.lastVisitedChild,
         });
       }
@@ -464,7 +470,7 @@ export class TimelineEngine<S extends object> {
           timestamp: entry.timestamp,
           forward: entry.forward,
           inverse: entry.inverse,
-          changedKeys: rootKeysOfPatch(entry.forward),
+          changedKeys: entry.changedKeys,
           checkpoint: isCheckpointDepth(depth, this.checkpointEvery) ? state : undefined,
         });
       } catch (error) {

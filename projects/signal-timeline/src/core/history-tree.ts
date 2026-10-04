@@ -57,6 +57,7 @@ export class HistoryTree<S> {
   private readonly nodes = new Map<NodeId, HistoryNode<S>>();
   private readonly leaves = new Set<NodeId>();
   private rootNodeId: NodeId;
+  private rootDepth = 0;
   private nextNodeId: NodeId;
 
   constructor(root: RootInit<S>, nextId = 1) {
@@ -85,6 +86,10 @@ export class HistoryTree<S> {
 
   get rootId(): NodeId {
     return this.rootNodeId;
+  }
+
+  get rootDepthOffset(): number {
+    return this.rootDepth;
   }
 
   get nextId(): NodeId {
@@ -191,6 +196,7 @@ export class HistoryTree<S> {
     this.nodes.delete(oldRoot.id);
     this.leaves.delete(oldRoot.id);
     this.rootNodeId = child.id;
+    this.rootDepth = child.depth;
   }
 
   pathBetween(from: NodeId, to: NodeId): TreePath {

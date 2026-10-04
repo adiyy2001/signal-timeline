@@ -18,14 +18,14 @@ export interface RuntimeConfig<S extends object> {
   readonly engine?: EngineOptions;
 }
 
-function toEntry<S>(node: NodeView<S>): TimelineEntry {
+function toEntry<S>(node: NodeView<S>, rootDepth: number): TimelineEntry {
   return {
     id: node.id,
     parentId: node.parentId,
     label: node.label,
     timestamp: node.timestamp,
     children: node.children,
-    depth: node.depth,
+    depth: node.depth - rootDepth,
     changedKeys: node.changedKeys,
   };
 }
@@ -155,7 +155,7 @@ export class TimelineRuntime<S extends object> {
         return read();
       });
     return {
-      entries: watch(() => engine.nodes().map(toEntry)),
+      entries: watch(() => engine.nodes().map((node) => toEntry(node, engine.rootDepth))),
       currentEntryId: watch(() => engine.currentId),
       redoBranches: watch(() => engine.redoBranches()),
       canUndo: watch(() => engine.canUndo),

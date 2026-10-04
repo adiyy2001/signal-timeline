@@ -600,6 +600,18 @@ describe('pruning', () => {
     assertTreeInvariants(engine, 50);
   });
 
+  it('reports the depth of the new root as zero after the root advanced', () => {
+    const { engine, edit } = createFixture({ maxEntries: 3 });
+    expect(engine.rootDepth).toBe(0);
+    for (let value = 1; value <= 6; value += 1) {
+      edit({ count: value });
+    }
+    expect(engine.rootDepth).toBe(3);
+    const root = engine.node(engine.rootId);
+    expect((root?.depth ?? 0) - engine.rootDepth).toBe(0);
+    expect(engine.nodes().map((node) => node.depth - engine.rootDepth)).toEqual([0, 1, 2, 3]);
+  });
+
   it('keeps ids increasing after pruning', () => {
     const { engine, edit } = createFixture({ maxEntries: 1 });
     const first = edit({ count: 1 })?.id ?? -1;
@@ -774,7 +786,15 @@ describe('changed keys of an entry', () => {
     expect(engine.node(engine.currentId)?.changedKeys).toEqual(['items']);
   });
 
-  it('derives the keys of restored entries from their patches', () => {
+  it('keeps the keys that were written even when the value is equal', () => {
+    const { engine, edit, scheduler } = createFixture();
+    edit({ meta: { title: 'untitled' } });
+    scheduler.flush();
+    expect(engine.node(engine.currentId)?.changedKeys).toEqual(['meta']);
+    expect(engine.patchOf(engine.currentId)?.forward).toEqual([]);
+  });
+
+  it('restores the keys of entries from the snapshot', () => {
     const { engine, edit } = createFixture();
     edit({ count: 1 });
     edit({ items: ['a'] });

@@ -15,6 +15,8 @@ The brief sets two numeric targets: recording overhead under 0.1 ms per typical 
 
 ## Results
 
+The tables below are from the first full run, when the tuning decisions were made. The full benchmark was run again on the final code, and `bench/results/summary.md` and the README carry those figures. They differ slightly (for example 0.005 ms instead of 0.012 ms for the synchronous overhead of `updateEntity`, and 16.6 ms and 58.3 ms instead of 8 ms and 41 ms for saving and loading 10,000 entries) because the laptop is shared and timings move between runs. The verdicts did not change.
+
 Recording, 10,000 entities with string ids, Node, `updateEntity`:
 
 | | before M5 | after M5 |

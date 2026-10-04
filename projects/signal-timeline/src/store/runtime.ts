@@ -1,9 +1,11 @@
 import { computed, signal, type Signal } from '@angular/core';
-import { TimelineEngine, TimelineError, type EngineOptions, type Move } from '../core/engine';
+import { TimelineEngine, type EngineOptions, type Move } from '../core/engine';
 import type { NodeView } from '../core/history-tree';
 import type { TimelineEntry, TimelineEntryPatches } from './options';
 import type { ReplayController } from './replay';
-import type { TimelineProps } from './timeline-api';
+import type { TimelineMethods, TimelineProps } from './timeline-api';
+
+export type TimelineControl = TimelineMethods & { readonly props: TimelineProps };
 
 export interface RuntimeHost<S extends object> {
   read(): S;
@@ -24,6 +26,7 @@ function toEntry<S>(node: NodeView<S>): TimelineEntry {
     timestamp: node.timestamp,
     children: node.children,
     depth: node.depth,
+    changedKeys: node.changedKeys,
   };
 }
 
@@ -35,6 +38,14 @@ function changedSlices<S extends object>(before: S, after: S): Partial<S> {
     }
   }
   return changes;
+}
+
+function attempt(run: () => void): void {
+  try {
+    run();
+  } catch {
+    return;
+  }
 }
 
 export class TimelineRuntime<S extends object> {
@@ -81,7 +92,7 @@ export class TimelineRuntime<S extends object> {
       run();
     } catch (error) {
       const start = this.engine.rollback();
-      this.restore(start);
+      this.writeState(start);
       throw error;
     }
     this.engine.commit(label, this.config.host.read());
@@ -104,9 +115,8 @@ export class TimelineRuntime<S extends object> {
     this.engine.endCoalescing();
   }
 
-  private restore(target: S): void {
-    const live = this.config.host.read();
-    const changes = changedSlices(live, target);
+  writeState(target: S): void {
+    const changes = changedSlices(this.config.host.read(), target);
     if (Object.keys(changes).length > 0) {
       this.config.replay.run(() => this.config.host.write(changes));
     }
@@ -117,8 +127,22 @@ export class TimelineRuntime<S extends object> {
       return;
     }
     const changes = changedSlices(move.before, move.after);
-    if (Object.keys(changes).length > 0) {
+    if (Object.keys(changes).length === 0) {
+      return;
+    }
+    try {
       this.config.replay.run(() => this.config.host.write(changes));
+    } catch (error) {
+      this.revert(move);
+      throw error;
+    }
+  }
+
+  private revert(move: Move<S>): void {
+    const changes = changedSlices(move.after, move.before);
+    attempt(() => this.config.replay.run(() => this.config.host.write(changes)));
+    if (this.engine.node(move.from) !== undefined) {
+      this.engine.jumpTo(move.from);
     }
   }
 
@@ -139,17 +163,4 @@ export class TimelineRuntime<S extends object> {
       isReplaying: this.config.replay.isReplaying,
     };
   }
-}
-
-export function requireKnownKeys(
-  option: string,
-  keys: readonly string[],
-  state: object,
-): readonly string[] {
-  for (const key of keys) {
-    if (!Object.hasOwn(state, key)) {
-      throw new TimelineError(`${option} names the unknown state key "${key}"`);
-    }
-  }
-  return keys;
 }

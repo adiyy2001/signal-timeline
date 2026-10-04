@@ -14,9 +14,12 @@ import {
 } from '@ngrx/signals';
 import { TimelineError } from '../core/engine';
 import type { TimelineChange, TimelineOptions } from './options';
-import { defaultLabel, Recorder } from './recorder';
+import { TimelineGroup } from '../group/timeline-group';
+import type { TimelinePersistenceOptions } from '../persistence/adapter';
+import { TimelinePersistence } from '../persistence/timeline-persistence';
+import { defaultLabel, Recorder, type RecorderTarget } from './recorder';
 import { closeAfterNextRender, ReplayController } from './replay';
-import { TimelineRuntime } from './runtime';
+import { TimelineRuntime, type TimelineControl } from './runtime';
 import type { TimelineMethods, TimelineProps } from './timeline-api';
 
 type Slices = Record<string, unknown>;
@@ -26,7 +29,7 @@ export type TimelineFeatureResult = {
   props: TimelineProps;
   methods: TimelineMethods;
 };
-type RuntimeProps = { readonly _timelineRuntime: TimelineRuntime<Slices> };
+type RuntimeProps = { readonly _timelineRuntime: TimelineControl };
 
 interface UntypedOptions {
   readonly track?: readonly string[];
@@ -38,6 +41,9 @@ interface UntypedOptions {
     readonly key?: (change: TimelineChange<Slices>) => string | undefined;
   };
   readonly label?: (change: TimelineChange<Slices>) => string;
+  readonly group?: boolean;
+  readonly storeKey?: string;
+  readonly persistence?: TimelinePersistenceOptions;
 }
 
 function requireKnownKeys(option: string, keys: readonly string[], state: object): void {
@@ -62,21 +68,68 @@ function resolveTrackedKeys(options: UntypedOptions, state: Slices): readonly st
   return stateKeys.filter((key) => !skipped.includes(key));
 }
 
-function createRuntime(store: LooseState, options: UntypedOptions): TimelineRuntime<Slices> {
-  const injector = inject(Injector);
-  const initial = getState(store);
-  const trackedKeys = resolveTrackedKeys(options, initial);
-  const replay = new ReplayController(closeAfterNextRender(injector));
-  const pick = (state: Slices): Slices => {
-    const slices: Slices = {};
-    for (const key of trackedKeys) {
-      slices[key] = state[key];
-    }
-    return slices;
+function pickKeys(keys: readonly string[], state: Slices): Slices {
+  const slices: Slices = {};
+  for (const key of keys) {
+    slices[key] = state[key];
+  }
+  return slices;
+}
+
+function singleStoreTarget(runtime: TimelineRuntime<Slices>): RecorderTarget {
+  const { engine } = runtime;
+  return {
+    get inTransaction(): boolean {
+      return runtime.inTransaction;
+    },
+    get knownSlices(): Slices {
+      return engine.state;
+    },
+    pathOffset: 1,
+    record: (slices, recordOptions) => engine.record(slices, recordOptions),
+    seal: () => engine.seal(),
+    isSettled: (id) => {
+      const node = engine.node(id);
+      return node !== undefined && !node.open;
+    },
+    patchOf: (id) => engine.patchOf(id),
   };
-  const runtime = new TimelineRuntime<Slices>(pick(initial), {
+}
+
+function watchChanges(
+  store: LooseState,
+  injector: Injector,
+  options: UntypedOptions,
+  setup: {
+    readonly target: RecorderTarget;
+    readonly replay: ReplayController;
+    readonly trackedKeys: readonly string[];
+    readonly idleSealMs: number | undefined;
+  },
+): void {
+  const recorder = new Recorder<Slices>({
+    target: setup.target,
+    replay: setup.replay,
+    trackedKeys: setup.trackedKeys,
+    label: options.label ?? ((change) => defaultLabel(change.changedKeys)),
+    coalesceKey: options.coalesce?.key,
+    initial: getState(store),
+    idleSealMs: setup.idleSealMs,
+  });
+  watchState(store, (state) => recorder.observe(state), { injector });
+  inject(DestroyRef).onDestroy(() => recorder.dispose());
+}
+
+function createStandaloneRuntime(
+  store: LooseState,
+  options: UntypedOptions,
+  trackedKeys: readonly string[],
+): TimelineControl {
+  const injector = inject(Injector);
+  const replay = new ReplayController(closeAfterNextRender(injector));
+  const runtime = new TimelineRuntime<Slices>(pickKeys(trackedKeys, getState(store)), {
     host: {
-      read: () => pick(getState(store)),
+      read: () => pickKeys(trackedKeys, getState(store)),
       write: (changes) => patchState(store, changes),
     },
     replay,
@@ -86,18 +139,86 @@ function createRuntime(store: LooseState, options: UntypedOptions): TimelineRunt
       coalesceWindowMs: options.coalesce?.windowMs,
     },
   });
-  const recorder = new Recorder<Slices>({
-    runtime,
+  watchChanges(store, injector, options, {
+    target: singleStoreTarget(runtime),
     replay,
     trackedKeys,
-    label: options.label ?? ((change) => defaultLabel(change.changedKeys)),
-    coalesceKey: options.coalesce?.key,
-    initial,
     idleSealMs: options.coalesce?.windowMs,
   });
-  watchState(store, (state) => recorder.observe(state), { injector });
-  inject(DestroyRef).onDestroy(() => recorder.dispose());
+  if (options.persistence !== undefined) {
+    const persistence = new TimelinePersistence(runtime.engine, options.persistence, {
+      keys: trackedKeys,
+      liveState: () => pickKeys(trackedKeys, getState(store)),
+      applyState: (target) => runtime.writeState(target),
+    });
+    persistence.start();
+    inject(DestroyRef).onDestroy(() => persistence.dispose());
+  }
   return runtime;
+}
+
+function requireMemberOptions(options: UntypedOptions): string {
+  const { storeKey } = options;
+  if (typeof storeKey !== 'string' || storeKey === '') {
+    throw new TimelineError('A store in a timeline group needs a storeKey');
+  }
+  const groupOnly = ['maxEntries', 'checkpointEvery', 'persistence'] as const;
+  for (const name of groupOnly) {
+    if (options[name] !== undefined) {
+      throw new TimelineError(`Set ${name} on provideTimelineGroup, not on a member store`);
+    }
+  }
+  if (options.coalesce?.windowMs !== undefined) {
+    throw new TimelineError('Set coalesce.windowMs on provideTimelineGroup, not on a member store');
+  }
+  return storeKey;
+}
+
+function createMemberRuntime(
+  store: LooseState,
+  options: UntypedOptions,
+  trackedKeys: readonly string[],
+): TimelineControl {
+  const storeKey = requireMemberOptions(options);
+  const injector = inject(Injector);
+  const group = inject(TimelineGroup, { optional: true });
+  if (group === null) {
+    throw new TimelineError(
+      `The store "${storeKey}" is a timeline group member, but no group is provided. Add provideTimelineGroup() to the providers.`,
+    );
+  }
+  const membership = group.join({
+    storeKey,
+    read: () => pickKeys(trackedKeys, getState(store)),
+    write: (slices) => {
+      const live = getState(store);
+      const changes: Slices = {};
+      for (const key of trackedKeys) {
+        if (!Object.is(live[key], slices[key])) {
+          changes[key] = slices[key];
+        }
+      }
+      if (Object.keys(changes).length > 0) {
+        patchState(store, changes);
+      }
+    },
+  });
+  watchChanges(store, injector, options, {
+    target: membership.target,
+    replay: membership.replay,
+    trackedKeys,
+    idleSealMs: membership.idleSealMs,
+  });
+  inject(DestroyRef).onDestroy(() => membership.leave());
+  membership.activate();
+  return membership.control;
+}
+
+function createRuntime(store: LooseState, options: UntypedOptions): TimelineControl {
+  const trackedKeys = resolveTrackedKeys(options, getState(store));
+  return options.group === true
+    ? createMemberRuntime(store, options, trackedKeys)
+    : createStandaloneRuntime(store, options, trackedKeys);
 }
 
 /**

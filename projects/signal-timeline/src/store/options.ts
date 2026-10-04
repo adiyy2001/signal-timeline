@@ -1,4 +1,5 @@
 import type { Patch } from '../core/patch';
+import type { TimelinePersistenceOptions } from '../persistence/adapter';
 
 /**
  * Describes one change to the store, passed to the `label` and `coalesce.key` options.
@@ -39,9 +40,21 @@ export interface TimelineCoalesceOptions<State> {
 }
 
 /**
- * Options for `withTimeline`.
+ * Options that every store accepts, alone or in a group.
  */
-export type TimelineOptions<State> = TimelineKeyOptions<State> & {
+export interface TimelineSharedOptions<State> {
+  /**
+   * Builds the label of a new entry. The default lists the changed keys.
+   */
+  readonly label?: (change: TimelineChange<State>) => string;
+}
+
+/**
+ * Options for a store that keeps its own history.
+ */
+export interface TimelineStandaloneOptions<State> extends TimelineSharedOptions<State> {
+  readonly group?: false;
+  readonly storeKey?: undefined;
   /**
    * The most entries kept, the initial state excluded. The oldest branch that is not the current one goes first.
    */
@@ -52,10 +65,33 @@ export type TimelineOptions<State> = TimelineKeyOptions<State> & {
   readonly checkpointEvery?: number;
   readonly coalesce?: TimelineCoalesceOptions<State>;
   /**
-   * Builds the label of a new entry. The default lists the changed keys.
+   * Saves the history and brings it back after a reload.
    */
-  readonly label?: (change: TimelineChange<State>) => string;
-};
+  readonly persistence?: TimelinePersistenceOptions;
+}
+
+/**
+ * Options for a store that shares one history with other stores through `provideTimelineGroup`.
+ * The limits, the coalescing window and the persistence belong to the group.
+ */
+export interface TimelineGroupMemberOptions<State> extends TimelineSharedOptions<State> {
+  readonly group: true;
+  /**
+   * Names the store inside the shared history. It must be unique in the group and stay the same
+   * between releases, because saved history is addressed by it.
+   */
+  readonly storeKey: string;
+  readonly coalesce?: Pick<TimelineCoalesceOptions<State>, 'key'> & { readonly windowMs?: never };
+  readonly maxEntries?: never;
+  readonly checkpointEvery?: never;
+  readonly persistence?: never;
+}
+
+/**
+ * Options for `withTimeline`.
+ */
+export type TimelineOptions<State> = TimelineKeyOptions<State> &
+  (TimelineStandaloneOptions<State> | TimelineGroupMemberOptions<State>);
 
 /**
  * One node of the history tree as the store exposes it.
@@ -72,6 +108,11 @@ export interface TimelineEntry {
   readonly children: readonly number[];
   /** Number of steps from the initial state. */
   readonly depth: number;
+  /**
+   * The state keys the entry changed. In a timeline group these are the store keys, so the
+   * list says which stores the entry touched. Empty for the initial state.
+   */
+  readonly changedKeys: readonly string[];
 }
 
 /**

@@ -1,11 +1,22 @@
 import { isDevMode } from '@angular/core';
 import { findNonPlainValue } from './plain-check';
+import type { RecordOptions, RecordResult } from '../core/engine';
+import type { PatchPair } from '../core/diff';
 import type { TimelineChange } from './options';
 import type { ReplayController } from './replay';
-import type { TimelineRuntime } from './runtime';
+
+export interface RecorderTarget {
+  readonly inTransaction: boolean;
+  readonly knownSlices: Record<string, unknown>;
+  readonly pathOffset: number;
+  record(slices: Record<string, unknown>, options: RecordOptions): RecordResult | undefined;
+  seal(): void;
+  isSettled(id: number): boolean;
+  patchOf(id: number): PatchPair | undefined;
+}
 
 export interface RecorderConfig<Full extends object> {
-  readonly runtime: TimelineRuntime<Record<string, unknown>>;
+  readonly target: RecorderTarget;
   readonly replay: ReplayController;
   readonly trackedKeys: readonly string[];
   readonly label: (change: TimelineChange<Full>) => string;
@@ -50,7 +61,7 @@ export class Recorder<Full extends object> {
     if (this.config.replay.windowOpen && this.anyKeyChanged(before, state)) {
       this.config.replay.closeNow();
     }
-    if (this.config.runtime.inTransaction) {
+    if (this.config.target.inTransaction) {
       return;
     }
     const changedKeys = this.changedTrackedKeys(state);
@@ -62,7 +73,7 @@ export class Recorder<Full extends object> {
       before,
       after: state,
     };
-    const result = this.config.runtime.engine.record(this.pick(state), {
+    const result = this.config.target.record(this.pick(state), {
       label: this.config.label(change),
       key: this.config.coalesceKey?.(change),
     });
@@ -82,14 +93,14 @@ export class Recorder<Full extends object> {
   }
 
   private sealWhenIdle(): void {
-    const { idleSealMs, runtime } = this.config;
+    const { idleSealMs, target } = this.config;
     if (idleSealMs === undefined) {
       return;
     }
     clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => {
       this.idleTimer = undefined;
-      runtime.engine.seal();
+      target.seal();
       if (isDevMode() && this.lastRecordedId !== undefined) {
         this.checkRecordedEntry(this.lastRecordedId);
       }
@@ -97,7 +108,7 @@ export class Recorder<Full extends object> {
   }
 
   private changedTrackedKeys(state: Full): string[] {
-    const known = this.config.runtime.engine.state;
+    const known = this.config.target.knownSlices;
     const incoming = state as Record<string, unknown>;
     return this.config.trackedKeys.filter((key) => !Object.is(known[key], incoming[key]));
   }
@@ -113,14 +124,16 @@ export class Recorder<Full extends object> {
   }
 
   private checkRecordedEntry(id: number): void {
-    const node = this.config.runtime.engine.node(id);
-    if (node === undefined || node.open) {
+    if (!this.config.target.isSettled(id)) {
       return;
     }
-    const patches = this.config.runtime.engine.patchOf(id);
+    const patches = this.config.target.patchOf(id);
     for (const operation of patches?.forward ?? []) {
       if (operation.op !== 'remove') {
-        this.warnOnNonPlain(operation.path.split('/')[1] ?? '', operation.value);
+        this.warnOnNonPlain(
+          operation.path.split('/')[this.config.target.pathOffset] ?? '',
+          operation.value,
+        );
       }
     }
   }

@@ -15,8 +15,23 @@ export type {
   TimelineCoalesceOptions,
   TimelineEntry,
   TimelineEntryPatches,
+  TimelineGroupMemberOptions,
   TimelineKeyOptions,
   TimelineOptions,
+  TimelineSharedOptions,
+  TimelineStandaloneOptions,
 } from './store/options';
 export type { TimelineMethods, TimelineProps, TimelineSource } from './store/timeline-api';
 export type { TimelineFeatureResult } from './store/with-timeline';
+export { TimelineGroup } from './group/timeline-group';
+export type { TimelineGroupOptions } from './group/timeline-group';
+export { provideTimelineGroup } from './group/provide-timeline-group';
+export type {
+  TimelinePersistenceAdapter,
+  TimelinePersistenceOptions,
+  TimelineRehydrateMode,
+} from './persistence/adapter';
+export {
+  createLocalStorageAdapter,
+  createSessionStorageAdapter,
+} from './persistence/web-storage-adapter';

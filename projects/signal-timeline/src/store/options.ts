@@ -6,8 +6,11 @@ import type { TimelinePersistenceOptions } from '../persistence/adapter';
  * `before` and `after` are the complete store states around the change.
  */
 export interface TimelineChange<State> {
+  /** The state keys whose value changed. */
   readonly changedKeys: readonly (keyof State & string)[];
+  /** The whole state before the change. */
   readonly before: State;
+  /** The whole state after the change. */
   readonly after: State;
 }
 
@@ -17,11 +20,15 @@ export interface TimelineChange<State> {
  */
 export type TimelineKeyOptions<State> =
   | {
+      /** The only state keys that are recorded. */
       readonly track?: readonly (keyof State & string)[];
+      /** Not allowed together with `track`. */
       readonly skip?: never;
     }
   | {
+      /** State keys that are left out of the history. */
       readonly skip?: readonly (keyof State & string)[];
+      /** Not allowed together with `skip`. */
       readonly track?: never;
     };
 
@@ -58,7 +65,9 @@ export interface TimelineSharedOptions<State> {
  * Options for a store that keeps its own history.
  */
 export interface TimelineStandaloneOptions<State> extends TimelineSharedOptions<State> {
+  /** Leave it out, or pass `false`, for a store that keeps its own history. */
   readonly group?: false;
+  /** Only members of a group have a store key. */
   readonly storeKey?: undefined;
   /**
    * The most entries kept, the initial state excluded. The oldest branch that is not the current one goes first.
@@ -70,6 +79,7 @@ export interface TimelineStandaloneOptions<State> extends TimelineSharedOptions<
    * histories and keeps more copies of the state in memory.
    */
   readonly checkpointEvery?: number;
+  /** Merges changes into one entry. */
   readonly coalesce?: TimelineCoalesceOptions<State>;
   /**
    * Saves the history and brings it back after a reload.
@@ -82,15 +92,23 @@ export interface TimelineStandaloneOptions<State> extends TimelineSharedOptions<
  * The limits, the coalescing window and the persistence belong to the group.
  */
 export interface TimelineGroupMemberOptions<State> extends TimelineSharedOptions<State> {
+  /** Pass `true` and provide the group with `provideTimelineGroup`. */
   readonly group: true;
   /**
    * Names the store inside the shared history. It must be unique in the group and stay the same
    * between releases, because saved history is addressed by it.
    */
   readonly storeKey: string;
-  readonly coalesce?: Pick<TimelineCoalesceOptions<State>, 'key'> & { readonly windowMs?: never };
+  /** Only `key` is accepted. The coalescing window belongs to the group. */
+  readonly coalesce?: Pick<TimelineCoalesceOptions<State>, 'key'> & {
+    /** Set on the group. */
+    readonly windowMs?: never;
+  };
+  /** Set on the group. */
   readonly maxEntries?: never;
+  /** Set on the group. */
   readonly checkpointEvery?: never;
+  /** Set on the group. */
   readonly persistence?: never;
 }
 
@@ -108,6 +126,7 @@ export interface TimelineEntry {
   readonly id: number;
   /** `undefined` for the initial state. */
   readonly parentId: number | undefined;
+  /** What the label option returned for the change, or `Initial state` for the first entry. */
   readonly label: string;
   /** Milliseconds since the epoch of the last change merged into the entry. */
   readonly timestamp: number;
@@ -126,6 +145,8 @@ export interface TimelineEntry {
  * The forward patch and the inverse patch of an entry, in RFC 6902 style.
  */
 export interface TimelineEntryPatches {
+  /** Turns the parent state into the state of the entry. */
   readonly forward: Patch;
+  /** Turns the state of the entry back into the parent state. */
   readonly inverse: Patch;
 }

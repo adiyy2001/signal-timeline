@@ -12,7 +12,9 @@ export interface TimelineSource {
   readonly currentEntryId: Signal<number>;
   /** The ids of the entries `redo` can move to from the current entry. */
   readonly redoBranches: Signal<readonly number[]>;
+  /** True when the current entry has a parent. */
   readonly canUndo: Signal<boolean>;
+  /** True when the current entry has at least one child. */
   readonly canRedo: Signal<boolean>;
   /**
    * True while the store is replaying history, from the moment of an undo, redo or jump until
@@ -75,10 +77,19 @@ export type TimelineMethods = {
  * The signals `withTimeline` adds to a store.
  */
 export type TimelineProps = {
+  /** Every entry of the history tree, the initial state first, in creation order. */
   readonly entries: Signal<readonly TimelineEntry[]>;
+  /** The id of the entry the live state matches. */
   readonly currentEntryId: Signal<number>;
+  /** The ids of the entries `redo` can move to from the current entry. */
   readonly redoBranches: Signal<readonly number[]>;
+  /** True when the current entry has a parent. */
   readonly canUndo: Signal<boolean>;
+  /** True when the current entry has at least one child. */
   readonly canRedo: Signal<boolean>;
+  /**
+   * True while the store is replaying history, from the moment of an undo, redo or jump until
+   * the render that runs the effects it scheduled. Read it untracked, or use `skipReplay`.
+   */
   readonly isReplaying: Signal<boolean>;
 };

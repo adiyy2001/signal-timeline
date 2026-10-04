@@ -8,8 +8,11 @@ export type JsonValue =
  * Adds a value at a path. On an array the last path segment is an index, or `-` to append.
  */
 export interface AddOperation {
+  /** The operation name. */
   readonly op: 'add';
+  /** A JSON Pointer to the place that receives the value. */
   readonly path: string;
+  /** The value to add. */
   readonly value: unknown;
 }
 
@@ -17,7 +20,9 @@ export interface AddOperation {
  * Removes the value at a path.
  */
 export interface RemoveOperation {
+  /** The operation name. */
   readonly op: 'remove';
+  /** A JSON Pointer to the value that goes away. */
   readonly path: string;
 }
 
@@ -25,8 +30,11 @@ export interface RemoveOperation {
  * Replaces the value at a path. An empty path replaces the whole document.
  */
 export interface ReplaceOperation {
+  /** The operation name. */
   readonly op: 'replace';
+  /** A JSON Pointer to the value that is replaced. */
   readonly path: string;
+  /** The new value. */
   readonly value: unknown;
 }
 

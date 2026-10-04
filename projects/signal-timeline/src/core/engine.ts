@@ -6,6 +6,11 @@ import { HistoryTree, type HistoryNode, type NodeId, type NodeView } from './his
 import { parsePointer } from './json-pointer';
 import { PatchError, type Operation, type Patch } from './patch';
 
+/**
+ * Thrown for misuse of the timeline: an unknown entry id, a redo to an entry that is not a
+ * child of the current one, an option that names an unknown state key or a call that is not
+ * allowed inside a transaction.
+ */
 export class TimelineError extends Error {
   constructor(message: string) {
     super(message);

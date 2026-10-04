@@ -1,0 +1,23 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "signal-timeline",
+  "entryPoints": [
+    "projects/signal-timeline/src/public-api.ts",
+    "projects/signal-timeline/devtools/src/public-api.ts"
+  ],
+  "tsconfig": "projects/signal-timeline/tsconfig.docs.json",
+  "out": "docs/api",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "githubPages": false,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "treatWarningsAsErrors": true,
+  "gitRevision": "main",
+  "sourceLinkTemplate": "https://github.com/adrianturbinski/signal-timeline/blob/{gitRevision}/{path}#L{line}",
+  "excludeProtected": true
+}

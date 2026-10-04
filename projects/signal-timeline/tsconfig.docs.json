@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [],
+    "paths": {
+      "signal-timeline": [
+        "./src/public-api.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "devtools/src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.type-spec.ts",
+    "**/testing/**"
+  ]
+}

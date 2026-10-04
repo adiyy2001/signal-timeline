@@ -23,9 +23,17 @@ export type TimelineGroupOptions = {
    */
   readonly checkpointEvery?: number;
   /** Changes within this many milliseconds of each other join one entry. */
-  readonly coalesce?: { readonly windowMs?: number };
+  readonly coalesce?: {
+    /** Changes within this many milliseconds of each other join one entry. */
+    readonly windowMs?: number;
+  };
 } & (
-  | { readonly persistence?: undefined; readonly stores?: undefined }
+  | {
+      /** Without persistence there is nothing to configure. */
+      readonly persistence?: undefined;
+      /** Without persistence there is nothing to list. */
+      readonly stores?: undefined;
+    }
   | {
       /** Saves and restores the shared history. */
       readonly persistence: TimelinePersistenceOptions;
@@ -71,7 +79,9 @@ export class TimelineGroup implements TimelineSource, TimelineMethods {
   readonly entries: TimelineProps['entries'];
   readonly currentEntryId: TimelineProps['currentEntryId'];
   readonly redoBranches: TimelineProps['redoBranches'];
+  /** True when the current entry has a parent. */
   readonly canUndo: TimelineProps['canUndo'];
+  /** True when the current entry has at least one child. */
   readonly canRedo: TimelineProps['canRedo'];
   readonly isReplaying: TimelineProps['isReplaying'];
 

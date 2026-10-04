@@ -24,9 +24,15 @@ import type { TimelineMethods, TimelineProps } from './timeline-api';
 
 type Slices = Record<string, unknown>;
 type LooseState = WritableStateSource<Slices>;
+/**
+ * What `withTimeline` adds to a store: no state, the timeline signals and the timeline methods.
+ */
 export type TimelineFeatureResult = {
+  /** The feature adds no state. */
   state: EmptyFeatureResult['state'];
+  /** The signals of the timeline. */
   props: TimelineProps;
+  /** The methods of the timeline. */
   methods: TimelineMethods;
 };
 type RuntimeProps = { readonly _timelineRuntime: TimelineControl };

@@ -61,7 +61,12 @@ export function closeAfterNextRender(injector: Injector): WindowCloser {
   };
 }
 
+/**
+ * Anything that reports whether history is being replayed. A store with `withTimeline` and a
+ * `TimelineGroup` both qualify.
+ */
 export interface ReplayAware {
+  /** True while history is replayed, until the render that runs the effects it scheduled. */
   readonly isReplaying: Signal<boolean>;
 }
 

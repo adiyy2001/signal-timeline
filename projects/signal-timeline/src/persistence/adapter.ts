@@ -25,6 +25,7 @@ export type TimelineRehydrateMode = 'history-and-state' | 'history-if-state-matc
  * Options for saving and restoring a timeline.
  */
 export interface TimelinePersistenceOptions {
+  /** Where the history is written and read. */
   readonly adapter: TimelinePersistenceAdapter;
   /** Defaults to `history-and-state`. */
   readonly rehydrate?: TimelineRehydrateMode;

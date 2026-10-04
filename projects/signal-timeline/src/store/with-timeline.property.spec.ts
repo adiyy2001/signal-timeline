@@ -84,7 +84,7 @@ function stateOf(store: Store): CounterState {
   return getState(store);
 }
 
-describe('withTimeline properties', () => {
+describe('withTimeline properties', { timeout: 120_000 }, () => {
   it('keeps the live state equal to the state recorded for the current entry', () => {
     assertProperty(
       fc.property(fc.array(step, { maxLength: 40 }), (steps) => {

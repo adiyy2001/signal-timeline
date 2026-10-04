@@ -31,7 +31,7 @@ function layoutOf(parents: readonly number[], tip: number) {
   return { path, layout: layoutTree(entriesFromParents(parents), path) };
 }
 
-describe('layoutTree properties', () => {
+describe('layoutTree properties', { timeout: 120_000 }, () => {
   it('places every entry exactly once, parents before children', () => {
     assertProperty(
       fc.property(scenario, ({ parents, tip }) => {

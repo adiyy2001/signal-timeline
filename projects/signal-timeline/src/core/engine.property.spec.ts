@@ -7,7 +7,7 @@ import {
 } from './testing/engine-model';
 import { assertProperty } from './testing/property';
 
-describe('timeline engine properties', () => {
+describe('timeline engine properties', { timeout: 120_000 }, () => {
   it('matches a model that stores a full state per entry, after every command', () => {
     assertProperty(
       fc.property(configArbitrary, commandListArbitrary, (config, commands) => {

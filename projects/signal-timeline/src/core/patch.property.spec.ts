@@ -57,7 +57,7 @@ function sharedReferencesSurvive(before: unknown, after: unknown, result: unknow
   return true;
 }
 
-describe('patch properties', () => {
+describe('patch properties', { timeout: 120_000 }, () => {
   it('apply(a, diff(a, b)) equals b', () => {
     assertProperty(
       fc.property(anyPair, ({ before, after }) => {

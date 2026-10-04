@@ -1,6 +1,6 @@
 # 0007 Replay marker and side effects
 
-Status: accepted, 2026-10-04. The mechanism is validated by a spike test at the start of milestone M3; if the test fails, the fallback below replaces it and this record is updated.
+Status: accepted, 2026-10-04. Validated in milestone M3: the spike test passes with the replay window, so the fallback below stays unused.
 
 ## Context
 
@@ -31,3 +31,10 @@ If the spike shows that the window cannot be closed reliably after the effect fl
 
 - The tests must cover an `effect`, an `rxMethod`, a `signalMethod` and a `watchState` callback, each across an undo, a redo and a jump, and then across a live change, which must fire again.
 - The window length depends on the render cycle, so zoneless and zone-based apps both have a test.
+
+## Validation (milestone M3)
+
+- The spike is kept as `store/testing/replay-suite.ts`, run twice: `replay.spec.ts` in a zoneless TestBed and `replay.zone.spec.ts` with zone.js and `provideZoneChangeDetection()`. Both pass on Angular 22.2.1 and, through `tools/compat.mjs 21`, on Angular 21.2.24.
+- Covered: an `effect`, an `rxMethod`, a `signalMethod` and a `watchState` callback across undo, redo and `jumpTo`, then across a live change, which fires again. The flag is true after an undo until `TestBed.tick()`, and a live change in the same tick closes the window at once.
+- The microtask fallback is used only when `afterNextRender` cannot be scheduled for the injector (no application, a destroyed injector). In an application it is never the closing path, because a microtask would close the window before the effects run.
+- Known limit: a replay started from inside an effect or a render hook registers its hook for the render after the one that flushes its effects, so those effects are not skipped. Undo and redo belong in event handlers and methods. The docs say so.

@@ -34,3 +34,6 @@ Coalescing:
 - The engine has an "open entry" concept with a timer, which tests drive with fake timers.
 - A merged entry (a gesture or a window run) whose net change is empty is removed when it is sealed, and the engine goes back to the parent. The check runs on a real diff, once per gesture, so a drag that ends where it started leaves no entry.
 - A key from `beginCoalescing` overrides the key from the options for as long as the gesture is open. Starting or ending a gesture seals the open entry, so two gestures with the same key stay two entries.
+- `jumpTo` seals the open entry before it moves. If the target is that open entry and sealing removes it because its net change is empty, the call returns without a move: the state already equals what the entry stood for. An id that never existed still throws. A model-based property run found this case.
+- `coalesce.windowMs` also starts an idle timer that seals the entry when the window passes without a change, so the patch is computed and the references are dropped even when no later change arrives. A key without a window has no timer: it stays open until another change, a move or `endCoalescing`.
+

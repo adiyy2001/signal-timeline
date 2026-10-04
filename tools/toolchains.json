@@ -1,0 +1,20 @@
+{
+  "21": {
+    "devDependencies": {
+      "@angular/build": "21.2.24",
+      "@angular/cli": "21.2.24",
+      "@angular/common": "21.2.24",
+      "@angular/compiler": "21.2.24",
+      "@angular/compiler-cli": "21.2.24",
+      "@angular/core": "21.2.24",
+      "@angular/platform-browser": "21.2.24",
+      "@ngrx/signals": "21.1.1",
+      "@vitest/coverage-v8": "4.1.11",
+      "jsdom": "28.1.0",
+      "ng-packagr": "21.2.7",
+      "typescript": "5.9.3",
+      "vitest": "4.1.11",
+      "zone.js": "0.15.1"
+    }
+  }
+}

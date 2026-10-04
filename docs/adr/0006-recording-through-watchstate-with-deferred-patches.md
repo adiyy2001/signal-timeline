@@ -31,3 +31,18 @@ So any diff that scans a 10,000 key map is above the target by an order of magni
 
 - The hot path is cheap. The total CPU cost still exists; it moves to a microtask. The benchmark shows whether it fits the frame budget on large states, and the README says so plainly.
 - The engine needs a "pending" node state with its own tests: undo before materialization, materialization after coalescing, and persistence of pending entries.
+
+## Measured in milestone M3 (probe, not the final suite)
+
+`bench/probe.ts`, run with `pnpm bench:probe` (production flags, Node 24.21.0, Intel Core i7-12700H, 20 cores, WSL2, state of 10,000 entities with string ids). Overhead is the mean of the timeline task minus the mean of the same update on a store without the feature.
+
+- Update of one small slice: 2 to 5 microseconds for the synchronous part, 3 to 5 microseconds including the patches.
+- Update of one entity in the 10,000 entity map: the update itself takes 2.7 to 3.8 ms. The synchronous overhead was 0.12 to 0.37 ms across three runs, so the 0.1 ms target is missed on this path and the noise is as large as the effect. Including the patches the overhead was 3.0 to 4.7 ms, almost all of it the diff of the two entity maps.
+- The code on the hot path is O(root keys), and the small slice number shows it. The extra cost on the entity map is most likely garbage collection pressure from keeping the before and after maps alive until the patch exists, which M5 has to confirm with heap measurements.
+
+M5 owns the real numbers: paired measurements, the key cache and a cheaper comparison for large maps. The README reports what the suite measures, including a miss.
+
+## Development check
+
+In development mode the recorder checks the forward patch of each recorded entry for values that are not plain data (class instances, functions, symbols, bigints) and warns once per root key. Scanning the slices on every change would add a scan of 10,000 entities to the hot path, so the check works on the patch, in the microtask that computes it. `undefined` is accepted: it is atomic for the diff, and only persistence drops it.
+

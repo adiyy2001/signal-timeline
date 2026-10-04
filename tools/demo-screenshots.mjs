@@ -50,6 +50,11 @@ try {
   await desktop.getByRole('button', { name: /Color theme/ }).click();
   await desktop.getByRole('button', { name: /Color theme/ }).click();
   await desktop.screenshot({ path: join(outputDirectory, 'desktop-3-dark.png'), fullPage: true });
+  await desktop.getByRole('button', { name: /Color theme/ }).click();
+  await desktop.getByRole('button', { name: /^Delete/ }).focus();
+  await desktop.keyboard.press('Tab');
+  await desktop.keyboard.press('ArrowRight');
+  await desktop.screenshot({ path: join(outputDirectory, 'desktop-4-focus.png'), fullPage: true });
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await scene(mobile, 'mobile');
 } finally {

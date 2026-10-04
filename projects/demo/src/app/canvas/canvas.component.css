@@ -14,7 +14,7 @@
   width: 100%;
   height: auto;
   aspect-ratio: 960 / 600;
-  touch-action: none;
+  touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -22,10 +22,12 @@
 .surface[data-tool='rectangle'],
 .surface[data-tool='ellipse'] {
   cursor: crosshair;
+  touch-action: none;
 }
 
 .surface[data-tool='connector'] {
   cursor: alias;
+  touch-action: none;
 }
 
 .surface:focus {
@@ -48,6 +50,7 @@
 .shape {
   cursor: grab;
   outline: none;
+  touch-action: none;
 }
 
 .shape .body {
@@ -154,6 +157,7 @@
   stroke-width: 2.5;
   cursor: nwse-resize;
   pointer-events: all;
+  touch-action: none;
 }
 
 .handle[data-corner='ne'],

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -66,7 +67,8 @@ interface ConnectorView {
 
 const keyboardStep = 10;
 const fineKeyboardStep = 2;
-const handleSize = 14;
+const handleBaseSize = 14;
+const handleLargestSize = 36;
 
 const arrowDirections: Record<string, Point> = {
   ArrowLeft: { x: -1, y: 0 },
@@ -88,7 +90,6 @@ export class CanvasComponent {
 
   protected readonly world = world;
   protected readonly corners = corners;
-  protected readonly handleSize = handleSize;
   protected readonly gridSize = 40;
   protected readonly cornerPoint = cornerPoint;
 
@@ -97,6 +98,11 @@ export class CanvasComponent {
   >(undefined);
   protected readonly connectorPreview = signal<Segment | undefined>(undefined);
   protected readonly pendingFrom = signal<string | undefined>(undefined);
+
+  private readonly screenScale = signal(1);
+  protected readonly handleSize = computed(() =>
+    Math.min(handleLargestSize, handleBaseSize / this.screenScale()),
+  );
 
   private interaction: Interaction | undefined;
 
@@ -159,7 +165,9 @@ export class CanvasComponent {
         this.pendingFrom.set(undefined);
       }
     });
-    inject(DestroyRef).onDestroy(() => this.stopListening());
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => this.stopListening());
+    afterNextRender(() => this.observeScale(destroyRef));
   }
 
   protected viewBox(): string {
@@ -423,6 +431,19 @@ export class CanvasComponent {
     this.view?.removeEventListener('pointermove', this.handleMove);
     this.view?.removeEventListener('pointerup', this.handleUp);
     this.view?.removeEventListener('pointercancel', this.handleCancel);
+  }
+
+  private observeScale(destroyRef: DestroyRef): void {
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const element = this.surface().nativeElement;
+    const observer = new ResizeObserver(() => {
+      const width = element.getBoundingClientRect().width;
+      this.screenScale.set(width > 0 ? width / world.width : 1);
+    });
+    observer.observe(element);
+    destroyRef.onDestroy(() => observer.disconnect());
   }
 
   private cornerOf(target: EventTarget | null): Corner | undefined {

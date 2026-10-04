@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
@@ -34,7 +34,10 @@ function listFiles() {
       encoding: 'utf8',
     },
   );
-  return output.split('\0').filter(Boolean);
+  return output
+    .split('\0')
+    .filter(Boolean)
+    .filter((file) => existsSync(join(root, file)));
 }
 
 function lineOf(text, position) {

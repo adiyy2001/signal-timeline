@@ -24,7 +24,10 @@
     "build:demo": "ng build demo --configuration production",
     "test:e2e": "node tools/run-e2e.mjs",
     "lighthouse": "node tools/lighthouse.mjs",
-    "screenshots": "node tools/demo-screenshots.mjs"
+    "screenshots": "node tools/demo-screenshots.mjs",
+    "docs:api": "typedoc",
+    "build:site": "node tools/build-site.mjs",
+    "verify": "node tools/verify.mjs"
   },
   "devDependencies": {
     "@angular/build": "22.2.1",

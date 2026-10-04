@@ -149,6 +149,22 @@ describe('EditorStore', () => {
       expect(() => store.endDrag()).not.toThrow();
     });
 
+    it('keeps a key press run apart from a different edit that follows at once', () => {
+      vi.useFakeTimers();
+      const store = open();
+      const id = store.addShape('rectangle', box);
+      store.nudge(id, 10, 0);
+      store.setFill(id, 'rose');
+      store.nudge(id, 10, 0);
+      expect(labels(store)).toEqual([
+        'Initial state',
+        'Add Rectangle 1',
+        'Move Rectangle 1',
+        'Recolor Rectangle 1 rose',
+        'Move Rectangle 1',
+      ]);
+    });
+
     it('merges repeated key presses into one entry until the idle time passes', () => {
       vi.useFakeTimers();
       const store = open();
@@ -160,6 +176,28 @@ describe('EditorStore', () => {
       expect(store.selectedShape()).toMatchObject({ x: 120, y: 110 });
       vi.advanceTimersByTime(700);
       store.nudge(id, 10, 0);
+      expect(store.entries()).toHaveLength(4);
+    });
+
+    it('leaves no entry for a key press run that returns to where it started', () => {
+      vi.useFakeTimers();
+      const store = open();
+      const id = store.addShape('rectangle', box);
+      store.nudge(id, 10, 0);
+      store.nudge(id, -10, 0);
+      vi.advanceTimersByTime(700);
+      expect(store.entries()).toHaveLength(2);
+    });
+
+    it('merges quick color changes of one shape and seals them when idle', () => {
+      vi.useFakeTimers();
+      const store = open();
+      const id = store.addShape('rectangle', box);
+      store.setFill(id, 'rose');
+      store.setFill(id, 'amber');
+      expect(store.entries()).toHaveLength(3);
+      vi.advanceTimersByTime(700);
+      store.setFill(id, 'violet');
       expect(store.entries()).toHaveLength(4);
     });
 
@@ -181,15 +219,6 @@ describe('EditorStore', () => {
       store.deleteSelected();
       expect(labels(store).at(-1)).toBe('Delete Rectangle 1');
       expect(store.entries()).toHaveLength(4);
-    });
-
-    it('closes an open run when the store is destroyed', () => {
-      vi.useFakeTimers();
-      const store = open();
-      const id = store.addShape('rectangle', box);
-      store.nudge(id, 10, 0);
-      expect(() => TestBed.resetTestingModule()).not.toThrow();
-      expect(store.entries().length).toBeGreaterThan(0);
     });
   });
 

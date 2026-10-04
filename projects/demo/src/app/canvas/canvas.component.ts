@@ -1,6 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import type {
-  ElementRef} from '@angular/core';
+import type { ElementRef } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,

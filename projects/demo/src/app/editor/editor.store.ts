@@ -8,14 +8,14 @@ import {
   withEntities,
 } from '@ngrx/signals/entities';
 import { createSessionStorageAdapter, withTimeline } from 'signal-timeline';
-import { describeChange, nextShapeName } from './describe-change';
+import { adjustmentKey, describeChange, nextShapeName } from './describe-change';
 import { ID_GENERATOR } from './id-generator';
 import { growRect, moveRect } from './geometry';
 import type { Connector, PaletteKey, Rect, Shape, ShapeKind, Tool } from './model';
 
 export const historyStorageKey = 'signal-timeline-demo-history';
 
-const nudgeIdleMs = 600;
+const adjustmentIdleMs = 600;
 
 interface EditorState {
   readonly selectedId: string | null;
@@ -43,6 +43,7 @@ export const EditorStore = signalStore(
   withTimeline({
     skip: ['selectedId', 'tool'],
     label: describeChange,
+    coalesce: { key: adjustmentKey },
     persistence: { adapter: createSessionStorageAdapter(historyStorageKey) },
   }),
   withComputed((store) => ({
@@ -58,13 +59,29 @@ export const EditorStore = signalStore(
   withMethods((store) => {
     const newId = inject(ID_GENERATOR);
     let activeGesture: string | undefined;
-    let nudgeTimer: ReturnType<typeof setTimeout> | undefined;
+    let sealTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const cancelSeal = (): void => {
+      if (sealTimer !== undefined) {
+        clearTimeout(sealTimer);
+        sealTimer = undefined;
+      }
+    };
+
+    const sealWhenIdle = (): void => {
+      if (activeGesture !== undefined) {
+        return;
+      }
+      cancelSeal();
+      sealTimer = setTimeout(() => {
+        sealTimer = undefined;
+        store.beginCoalescing('idle');
+        store.endCoalescing();
+      }, adjustmentIdleMs);
+    };
 
     const finishGesture = (): void => {
-      if (nudgeTimer !== undefined) {
-        clearTimeout(nudgeTimer);
-        nudgeTimer = undefined;
-      }
+      cancelSeal();
       if (activeGesture !== undefined) {
         activeGesture = undefined;
         store.endCoalescing();
@@ -80,7 +97,10 @@ export const EditorStore = signalStore(
       activeGesture = key;
     };
 
-    inject(DestroyRef).onDestroy(finishGesture);
+    inject(DestroyRef).onDestroy(() => {
+      cancelSeal();
+      finishGesture();
+    });
 
     const setGeometry = (id: string, rect: Rect): void => {
       const shape = store.shapeEntityMap()[id];
@@ -92,23 +112,7 @@ export const EditorStore = signalStore(
         store,
         updateEntity({ id, changes: { x, y, width, height } }, { collection: 'shape' }),
       );
-    };
-
-    const editFromKeyboard = (
-      id: string,
-      gesture: 'nudge' | 'grow',
-      compute: (shape: Shape) => Rect,
-    ): void => {
-      const shape = store.shapeEntityMap()[id];
-      if (shape === undefined) {
-        return;
-      }
-      startGesture(`${gesture}:${id}`);
-      setGeometry(id, compute(shape));
-      if (nudgeTimer !== undefined) {
-        clearTimeout(nudgeTimer);
-      }
-      nudgeTimer = setTimeout(finishGesture, nudgeIdleMs);
+      sealWhenIdle();
     };
 
     return {
@@ -142,6 +146,7 @@ export const EditorStore = signalStore(
         const shape = store.shapeEntityMap()[id];
         if (shape !== undefined && shape.fill !== fill) {
           patchState(store, updateEntity({ id, changes: { fill } }, { collection: 'shape' }));
+          sealWhenIdle();
         }
       },
 
@@ -207,11 +212,17 @@ export const EditorStore = signalStore(
       },
 
       nudge(id: string, dx: number, dy: number): void {
-        editFromKeyboard(id, 'nudge', (shape) => moveRect(shape, dx, dy));
+        const shape = store.shapeEntityMap()[id];
+        if (shape !== undefined) {
+          setGeometry(id, moveRect(shape, dx, dy));
+        }
       },
 
       grow(id: string, amount: number): void {
-        editFromKeyboard(id, 'grow', (shape) => growRect(shape, amount));
+        const shape = store.shapeEntityMap()[id];
+        if (shape !== undefined) {
+          setGeometry(id, growRect(shape, amount));
+        }
       },
 
       resetHistory(): void {

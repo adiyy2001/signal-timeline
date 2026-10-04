@@ -80,6 +80,31 @@ export function describeChange(change: EditorChange): string {
   return 'Edit drawing';
 }
 
+export function adjustmentKey(change: EditorChange): string | undefined {
+  const { before, after } = change;
+  const sameShapes =
+    Object.keys(before.shapeEntityMap).length === Object.keys(after.shapeEntityMap).length &&
+    before.connectorEntityMap === after.connectorEntityMap;
+  const edited = sameShapes
+    ? ids(after.shapeEntityMap).filter(
+        (id) => before.shapeEntityMap[id] !== after.shapeEntityMap[id],
+      )
+    : [];
+  const id = edited.length === 1 ? edited[0] : undefined;
+  const was = id === undefined ? undefined : before.shapeEntityMap[id];
+  const now = id === undefined ? undefined : after.shapeEntityMap[id];
+  if (id === undefined || was === undefined || now === undefined) {
+    return undefined;
+  }
+  if (was.width !== now.width || was.height !== now.height) {
+    return `resize:${id}`;
+  }
+  if (was.x !== now.x || was.y !== now.y) {
+    return `move:${id}`;
+  }
+  return was.fill === now.fill ? undefined : `recolor:${id}`;
+}
+
 export function nextShapeName(
   kind: Shape['kind'],
   shapes: Record<string, Shape | undefined>,

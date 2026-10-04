@@ -1,4 +1,9 @@
-import { describeChange, nextShapeName, type EditorSnapshot } from './describe-change';
+import {
+  adjustmentKey,
+  describeChange,
+  nextShapeName,
+  type EditorSnapshot,
+} from './describe-change';
 import type { Connector, Shape } from './model';
 
 function shape(id: string, overrides: Partial<Shape> = {}): Shape {
@@ -80,5 +85,56 @@ describe('nextShapeName', () => {
     expect(nextShapeName('rectangle', shapes)).toBe('Rectangle 4');
     expect(nextShapeName('ellipse', shapes)).toBe('Ellipse 8');
     expect(nextShapeName('rectangle', {})).toBe('Rectangle 1');
+  });
+});
+
+describe('adjustmentKey', () => {
+  const one = shape('1');
+  const two = shape('2');
+  const both = snapshot([one, two]);
+  const withShapes = (shapes: Shape[]): EditorSnapshot => ({
+    shapeEntityMap: snapshot(shapes).shapeEntityMap,
+    connectorEntityMap: both.connectorEntityMap,
+  });
+
+  it('names a move, a resize and a recolor of one shape', () => {
+    expect(adjustmentKey({ before: both, after: withShapes([{ ...one, x: 5 }, two]) })).toBe(
+      'move:1',
+    );
+    expect(adjustmentKey({ before: both, after: withShapes([one, { ...two, height: 5 }]) })).toBe(
+      'resize:2',
+    );
+    expect(
+      adjustmentKey({ before: both, after: withShapes([{ ...one, fill: 'rose' }, two]) }),
+    ).toBe('recolor:1');
+  });
+
+  it('has no key when shapes were added, removed or several changed', () => {
+    expect(adjustmentKey({ before: both, after: withShapes([one]) })).toBeUndefined();
+    expect(adjustmentKey({ before: withShapes([one]), after: both })).toBeUndefined();
+    expect(
+      adjustmentKey({
+        before: both,
+        after: withShapes([
+          { ...one, x: 5 },
+          { ...two, x: 5 },
+        ]),
+      }),
+    ).toBeUndefined();
+    expect(adjustmentKey({ before: both, after: both })).toBeUndefined();
+  });
+
+  it('has no key when a connector changed or the shape was replaced', () => {
+    const connector: Connector = { id: 'c', fromId: '1', toId: '2' };
+    expect(
+      adjustmentKey({ before: both, after: snapshot([{ ...one, x: 5 }, two], [connector]) }),
+    ).toBeUndefined();
+    expect(adjustmentKey({ before: withShapes([one]), after: withShapes([two]) })).toBeUndefined();
+  });
+
+  it('has no key for an edit that only renames', () => {
+    expect(
+      adjustmentKey({ before: both, after: withShapes([{ ...one, name: 'Other' }, two]) }),
+    ).toBeUndefined();
   });
 });

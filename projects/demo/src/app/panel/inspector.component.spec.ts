@@ -53,7 +53,7 @@ describe('InspectorComponent', () => {
     expect(pressed.textContent).toContain('sky');
   });
 
-  it('changes the geometry from the fields as one entry each', () => {
+  it('changes the geometry from the fields and merges quick edits of the same kind', () => {
     const { store, type } = setup();
     store.addShape('rectangle', box);
     type(2, '200');
@@ -64,8 +64,8 @@ describe('InspectorComponent', () => {
       store
         .entries()
         .map((entry) => entry.label)
-        .slice(-3),
-    ).toEqual(['Resize Rectangle 1', 'Resize Rectangle 1', 'Move Rectangle 1']);
+        .slice(-2),
+    ).toEqual(['Resize Rectangle 1', 'Move Rectangle 1']);
   });
 
   it('clamps a value that is too large and puts the clamped number back in the field', () => {

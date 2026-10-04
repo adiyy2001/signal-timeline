@@ -132,6 +132,6 @@ export function cornerPoint(rect: Rect, corner: Corner): Point {
 }
 
 export function cascadeCenter(index: number): Point {
-  const step = index % 8;
-  return { x: 240 + step * 52, y: 170 + step * 36 };
+  const slot = index % 12;
+  return { x: 200 + (slot % 4) * 180, y: 140 + Math.floor(slot / 4) * 150 };
 }

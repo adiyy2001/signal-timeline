@@ -22,8 +22,48 @@ function buildHistory(
   return { store, entityCount: historyEntityCount };
 }
 
-function jumpDistances(historyEdits: number): readonly number[] {
-  return [10, 100, 1000, 5000, historyEdits].filter((distance) => distance <= historyEdits);
+function seededSequence(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 2 ** 32;
+  };
+}
+
+interface JumpCase {
+  readonly name: string;
+  readonly targets: readonly number[];
+}
+
+function jumpCases(
+  rootId: number,
+  tipId: number,
+  checkpointEvery: number,
+  count: number,
+): readonly JumpCase[] {
+  const random = seededSequence(20261004);
+  const span = tipId - rootId;
+  const anywhere = Array.from(
+    { length: count },
+    () => rootId + 1 + Math.floor(random() * (span - 1)),
+  );
+  const nearTip = Array.from(
+    { length: count },
+    () => tipId - 1 - Math.floor(random() * Math.min(100, span - 1)),
+  );
+  const farthestFromCheckpoint = Array.from({ length: count }, (_, index) => {
+    const checkpointDepth = Math.max(
+      1,
+      Math.floor(((index + 1) / count) * (span / checkpointEvery)),
+    );
+    return Math.min(tipId - 1, rootId + checkpointDepth * checkpointEvery - 1);
+  });
+  return [
+    { name: 'jump to a random entry', targets: anywhere },
+    { name: 'jump to an entry within 100 of the newest', targets: nearTip },
+    { name: 'jump to the entry just before a checkpoint', targets: farthestFromCheckpoint },
+    { name: 'jump to the initial state', targets: [rootId] },
+  ];
 }
 
 async function measureCheckpointInterval(
@@ -35,8 +75,6 @@ async function measureCheckpointInterval(
   const entries = store.entries();
   const tipId = store.currentEntryId();
   const rootId = entries[0].id;
-  const idAtDistance = (distance: number) =>
-    tipId - distance < rootId ? rootId : tipId - distance;
   const bench = createBench(context, `navigation, checkpointEvery ${checkpointEvery}`);
   bench
     .add(
@@ -54,13 +92,15 @@ async function measureCheckpointInterval(
         () => store.redo(),
       ),
     );
-  for (const distance of jumpDistances(context.settings.historyEdits)) {
-    const target = idAtDistance(distance);
+  for (const jump of jumpCases(rootId, tipId, checkpointEvery, 200)) {
+    let position = 0;
     bench.add(
-      `jump ${distance}`,
+      jump.name,
       timedWithSetup(
-        () => undefined,
-        () => store.jumpTo(target),
+        () => {
+          position += 1;
+        },
+        () => store.jumpTo(jump.targets[position % jump.targets.length]),
         () => store.jumpTo(tipId),
       ),
     );
@@ -114,7 +154,7 @@ export async function runNavigationSuite(context: BenchContext): Promise<SuiteRe
   }
   rows.push(await measureEntriesSignal(context));
   return {
-    description: `Latency of undo, redo and jumpTo on a linear history of ${context.settings.historyEdits} entries over ${context.settings.historyEntityCount} entities with string ids, for several checkpoint intervals. A jump goes from the newest entry back by the given number of entries (the last one is the initial state), and the return trip is outside the timed region. The last row is one edit followed by reading the entries signal with the whole history in place.`,
+    description: `Latency of undo, redo and jumpTo on a linear history of ${context.settings.historyEdits} entries over ${context.settings.historyEntityCount} entities with string ids, for several checkpoint intervals. Every jump starts at the newest entry and the return trip is outside the timed region. Targets come from a fixed pseudo random sequence (200 entries anywhere, 200 within 100 of the newest), from the entry just before each checkpoint (the worst alignment for the checkpoint route), and the initial state. The last row is one edit followed by reading the entries signal with the whole history in place.`,
     notes: [
       'Latencies include the patchState call that writes the target state back into the store and the watchers it triggers.',
     ],

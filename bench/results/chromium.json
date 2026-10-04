@@ -1,7 +1,7 @@
 {
   "runtime": "chromium",
   "engine": "Chromium 153.0.8010.12",
-  "generatedAt": "2026-10-04T04:00:21.198Z",
+  "generatedAt": "2026-10-04T05:26:11.031Z",
   "smoke": false,
   "hardware": {
     "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
@@ -26,12 +26,12 @@
           "entities": 10000,
           "baselineMs": 0,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0065,
-          "synchronousOverheadP90Ms": 0,
+          "synchronousOverheadMeanMs": 0.013,
+          "synchronousOverheadP90Ms": 0.1,
           "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
           "totalOverheadMs": 0,
-          "totalOverheadMeanMs": 0.0088,
+          "totalOverheadMeanMs": 0.0215,
           "pairs": 400
         },
         {
@@ -40,82 +40,82 @@
           "entities": 10000,
           "baselineMs": 0,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0022,
-          "synchronousOverheadP90Ms": 0,
+          "synchronousOverheadMeanMs": 0.0128,
+          "synchronousOverheadP90Ms": 0.1,
           "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
           "totalOverheadMs": 0,
-          "totalOverheadMeanMs": 0.0052,
+          "totalOverheadMeanMs": 0.0203,
           "pairs": 400
         },
         {
           "scenario": "updateEntity",
           "ids": "string",
           "entities": 10000,
-          "baselineMs": 2,
+          "baselineMs": 3.2,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": -0.0182,
-          "synchronousOverheadP90Ms": 0.2,
-          "synchronousOverheadRoundMinMs": -0.1,
+          "synchronousOverheadMeanMs": 0.0092,
+          "synchronousOverheadP90Ms": 0.3,
+          "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 1.1,
-          "totalOverheadMeanMs": 1.0738,
+          "totalOverheadMs": 1.6,
+          "totalOverheadMeanMs": 1.849,
           "pairs": 400
         },
         {
           "scenario": "addEntity",
           "ids": "string",
           "entities": 10000,
-          "baselineMs": 2.1,
+          "baselineMs": 2.8,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.022,
-          "synchronousOverheadP90Ms": 0.2,
+          "synchronousOverheadMeanMs": 0.0137,
+          "synchronousOverheadP90Ms": 0.3,
           "synchronousOverheadRoundMinMs": 0,
-          "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 1.15,
-          "totalOverheadMeanMs": 1.183,
+          "synchronousOverheadRoundMaxMs": 0.05,
+          "totalOverheadMs": 1.55,
+          "totalOverheadMeanMs": 1.817,
           "pairs": 400
         },
         {
           "scenario": "removeEntity",
           "ids": "string",
           "entities": 10000,
-          "baselineMs": 2.1,
+          "baselineMs": 2.9,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0032,
-          "synchronousOverheadP90Ms": 0.2,
+          "synchronousOverheadMeanMs": 0.0447,
+          "synchronousOverheadP90Ms": 0.3,
           "synchronousOverheadRoundMinMs": 0,
-          "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 1.2,
-          "totalOverheadMeanMs": 1.1985,
+          "synchronousOverheadRoundMaxMs": 0.1,
+          "totalOverheadMs": 1.7,
+          "totalOverheadMeanMs": 2.024,
           "pairs": 400
         },
         {
           "scenario": "updateEntity, history full at maxEntries 100",
           "ids": "string",
           "entities": 10000,
-          "baselineMs": 2.2,
+          "baselineMs": 2.6,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0053,
-          "synchronousOverheadP90Ms": 0.2,
+          "synchronousOverheadMeanMs": 0.0245,
+          "synchronousOverheadP90Ms": 0.3,
           "synchronousOverheadRoundMinMs": 0,
-          "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 1.2,
-          "totalOverheadMeanMs": 1.2295,
+          "synchronousOverheadRoundMaxMs": 0.1,
+          "totalOverheadMs": 1.5,
+          "totalOverheadMeanMs": 1.664,
           "pairs": 400
         },
         {
           "scenario": "transaction of ten updates",
           "ids": "string",
           "entities": 10000,
-          "baselineMs": 19.8,
-          "synchronousOverheadMs": 1.2,
-          "synchronousOverheadMeanMs": 1.155,
-          "synchronousOverheadP90Ms": 2.6,
-          "synchronousOverheadRoundMinMs": 0.9,
-          "synchronousOverheadRoundMaxMs": 1.35,
-          "totalOverheadMs": 1.2,
-          "totalOverheadMeanMs": 1.1563,
+          "baselineMs": 42.1,
+          "synchronousOverheadMs": 1.8,
+          "synchronousOverheadMeanMs": 1.7352,
+          "synchronousOverheadP90Ms": 7.9,
+          "synchronousOverheadRoundMinMs": 1.1,
+          "synchronousOverheadRoundMaxMs": 2.1,
+          "totalOverheadMs": 1.8,
+          "totalOverheadMeanMs": 1.7415,
           "pairs": 400
         },
         {
@@ -124,12 +124,12 @@
           "entities": 10000,
           "baselineMs": 0,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0033,
-          "synchronousOverheadP90Ms": 0,
+          "synchronousOverheadMeanMs": 0.0138,
+          "synchronousOverheadP90Ms": 0.1,
           "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
           "totalOverheadMs": 0,
-          "totalOverheadMeanMs": 0.004,
+          "totalOverheadMeanMs": 0.0165,
           "pairs": 400
         },
         {
@@ -138,82 +138,82 @@
           "entities": 10000,
           "baselineMs": 0,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0012,
-          "synchronousOverheadP90Ms": 0,
+          "synchronousOverheadMeanMs": 0.0083,
+          "synchronousOverheadP90Ms": 0.1,
           "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
           "totalOverheadMs": 0,
-          "totalOverheadMeanMs": 0.0027,
+          "totalOverheadMeanMs": 0.0145,
           "pairs": 400
         },
         {
           "scenario": "updateEntity",
           "ids": "integer",
           "entities": 10000,
-          "baselineMs": 1,
+          "baselineMs": 1.2,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": -0.01,
-          "synchronousOverheadP90Ms": 0.1,
+          "synchronousOverheadMeanMs": 0.0307,
+          "synchronousOverheadP90Ms": 0.2,
           "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 0.3,
-          "totalOverheadMeanMs": 0.2805,
+          "totalOverheadMs": 0.4,
+          "totalOverheadMeanMs": 0.4595,
           "pairs": 400
         },
         {
           "scenario": "addEntity",
           "ids": "integer",
           "entities": 10000,
-          "baselineMs": 0.9,
+          "baselineMs": 1.2,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": -0.0095,
-          "synchronousOverheadP90Ms": 0.1,
+          "synchronousOverheadMeanMs": 0.0193,
+          "synchronousOverheadP90Ms": 0.2,
           "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 0.3,
-          "totalOverheadMeanMs": 0.306,
+          "totalOverheadMs": 0.5,
+          "totalOverheadMeanMs": 0.5785,
           "pairs": 400
         },
         {
           "scenario": "removeEntity",
           "ids": "integer",
           "entities": 10000,
-          "baselineMs": 1.1,
+          "baselineMs": 1.65,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0112,
-          "synchronousOverheadP90Ms": 0.2,
+          "synchronousOverheadMeanMs": 0.0442,
+          "synchronousOverheadP90Ms": 0.3,
           "synchronousOverheadRoundMinMs": 0,
-          "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 0.4,
-          "totalOverheadMeanMs": 0.3782,
+          "synchronousOverheadRoundMaxMs": 0.1,
+          "totalOverheadMs": 0.6,
+          "totalOverheadMeanMs": 0.7198,
           "pairs": 400
         },
         {
           "scenario": "updateEntity, history full at maxEntries 100",
           "ids": "integer",
           "entities": 10000,
-          "baselineMs": 1,
+          "baselineMs": 1.35,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0372,
+          "synchronousOverheadMeanMs": 0.003,
           "synchronousOverheadP90Ms": 0.2,
           "synchronousOverheadRoundMinMs": 0,
-          "synchronousOverheadRoundMaxMs": 0,
-          "totalOverheadMs": 0.3,
-          "totalOverheadMeanMs": 0.3507,
+          "synchronousOverheadRoundMaxMs": 0.05,
+          "totalOverheadMs": 0.4,
+          "totalOverheadMeanMs": 0.5218,
           "pairs": 400
         },
         {
           "scenario": "transaction of ten updates",
           "ids": "integer",
           "entities": 10000,
-          "baselineMs": 9.2,
-          "synchronousOverheadMs": 0.3,
-          "synchronousOverheadMeanMs": 0.3507,
-          "synchronousOverheadP90Ms": 0.9,
+          "baselineMs": 11.7,
+          "synchronousOverheadMs": 0.4,
+          "synchronousOverheadMeanMs": 0.391,
+          "synchronousOverheadP90Ms": 2.8,
           "synchronousOverheadRoundMinMs": 0.2,
-          "synchronousOverheadRoundMaxMs": 0.4,
-          "totalOverheadMs": 0.3,
-          "totalOverheadMeanMs": 0.3522,
+          "synchronousOverheadRoundMaxMs": 0.65,
+          "totalOverheadMs": 0.4,
+          "totalOverheadMeanMs": 0.3932,
           "pairs": 400
         },
         {
@@ -222,26 +222,26 @@
           "entities": 1000,
           "baselineMs": 0.1,
           "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": 0.0012,
+          "synchronousOverheadMeanMs": 0.0015,
           "synchronousOverheadP90Ms": 0.1,
           "synchronousOverheadRoundMinMs": 0,
           "synchronousOverheadRoundMaxMs": 0,
           "totalOverheadMs": 0.3,
-          "totalOverheadMeanMs": 0.2515,
+          "totalOverheadMeanMs": 0.2595,
           "pairs": 400
         },
         {
           "scenario": "updateEntity",
           "ids": "string",
           "entities": 50000,
-          "baselineMs": 12.85,
-          "synchronousOverheadMs": 0,
-          "synchronousOverheadMeanMs": -0.1012,
-          "synchronousOverheadP90Ms": 1.5,
-          "synchronousOverheadRoundMinMs": -0.2,
-          "synchronousOverheadRoundMaxMs": 0.2,
-          "totalOverheadMs": 6.4,
-          "totalOverheadMeanMs": 6.4183,
+          "baselineMs": 13.75,
+          "synchronousOverheadMs": 0.2,
+          "synchronousOverheadMeanMs": 0.1945,
+          "synchronousOverheadP90Ms": 2.1,
+          "synchronousOverheadRoundMinMs": 0.1,
+          "synchronousOverheadRoundMaxMs": 0.3,
+          "totalOverheadMs": 7.1,
+          "totalOverheadMeanMs": 7.3378,
           "pairs": 400
         }
       ]
@@ -259,7 +259,7 @@
           "operation": "undo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 12555
+          "samples": 13695
         },
         {
           "entities": 1000,
@@ -268,7 +268,7 @@
           "operation": "redo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 126603
+          "samples": 120634
         },
         {
           "entities": 1000,
@@ -277,16 +277,16 @@
           "operation": "jump to a random entry",
           "p50Ms": 0.3,
           "p99Ms": 0.9,
-          "samples": 666
+          "samples": 687
         },
         {
           "entities": 1000,
           "edits": 10000,
           "checkpointEvery": 10,
           "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 0.2,
-          "p99Ms": 0.6,
-          "samples": 1680
+          "p50Ms": 0.1,
+          "p99Ms": 0.5,
+          "samples": 1704
         },
         {
           "entities": 1000,
@@ -295,7 +295,7 @@
           "operation": "jump to the entry just before a checkpoint",
           "p50Ms": 0.4,
           "p99Ms": 0.8,
-          "samples": 664
+          "samples": 645
         },
         {
           "entities": 1000,
@@ -304,7 +304,7 @@
           "operation": "jump to the initial state",
           "p50Ms": 0.5,
           "p99Ms": 0.6,
-          "samples": 531
+          "samples": 548
         },
         {
           "entities": 1000,
@@ -313,7 +313,7 @@
           "operation": "undo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 14517
+          "samples": 14107
         },
         {
           "entities": 1000,
@@ -322,259 +322,259 @@
           "operation": "redo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 126285
+          "samples": 122582
         },
         {
           "entities": 1000,
           "edits": 10000,
           "checkpointEvery": 25,
           "operation": "jump to a random entry",
-          "p50Ms": 0.4,
-          "p99Ms": 0.8,
-          "samples": 663
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 25,
-          "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 0.2,
-          "p99Ms": 0.4,
-          "samples": 1631
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 25,
-          "operation": "jump to the entry just before a checkpoint",
-          "p50Ms": 0.4,
+          "p50Ms": 0.3,
           "p99Ms": 0.9,
-          "samples": 629
+          "samples": 692
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 25,
+          "operation": "jump to an entry within 100 of the newest",
+          "p50Ms": 0.2,
+          "p99Ms": 0.5,
+          "samples": 1565
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 25,
+          "operation": "jump to the entry just before a checkpoint",
+          "p50Ms": 0.4,
+          "p99Ms": 0.8,
+          "samples": 623
         },
         {
           "entities": 1000,
           "edits": 10000,
           "checkpointEvery": 25,
           "operation": "jump to the initial state",
-          "p50Ms": 0.5,
-          "p99Ms": 0.8,
-          "samples": 530
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 50,
-          "operation": "undo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 14257
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 50,
-          "operation": "redo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 123635
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 50,
-          "operation": "jump to a random entry",
           "p50Ms": 0.4,
-          "p99Ms": 0.952,
-          "samples": 625
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 50,
-          "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 0.2,
-          "p99Ms": 0.5,
-          "samples": 1557
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 50,
-          "operation": "jump to the entry just before a checkpoint",
-          "p50Ms": 0.4,
-          "p99Ms": 1,
-          "samples": 598
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 50,
-          "operation": "jump to the initial state",
-          "p50Ms": 0.4,
-          "p99Ms": 0.6,
-          "samples": 550
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 100,
-          "operation": "undo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 14481
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 100,
-          "operation": "redo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 120128
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 100,
-          "operation": "jump to a random entry",
-          "p50Ms": 0.4,
-          "p99Ms": 1.2,
-          "samples": 526
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 100,
-          "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 0.2,
-          "p99Ms": 0.6,
-          "samples": 1222
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 100,
-          "operation": "jump to the entry just before a checkpoint",
-          "p50Ms": 0.5,
-          "p99Ms": 1.1,
-          "samples": 474
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 100,
-          "operation": "jump to the initial state",
-          "p50Ms": 0.5,
-          "p99Ms": 0.876,
-          "samples": 463
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 250,
-          "operation": "undo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 11668
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 250,
-          "operation": "redo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 130176
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 250,
-          "operation": "jump to a random entry",
-          "p50Ms": 0.5,
-          "p99Ms": 1.079,
-          "samples": 522
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 250,
-          "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 0.2,
-          "p99Ms": 0.5,
-          "samples": 1302
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 250,
-          "operation": "jump to the entry just before a checkpoint",
-          "p50Ms": 0.5,
-          "p99Ms": 1,
-          "samples": 441
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 250,
-          "operation": "jump to the initial state",
-          "p50Ms": 0.5,
-          "p99Ms": 0.6,
-          "samples": 547
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 1000,
-          "operation": "undo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 8393
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 1000,
-          "operation": "redo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 112739
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 1000,
-          "operation": "jump to a random entry",
-          "p50Ms": 0.9,
-          "p99Ms": 1.729,
-          "samples": 272
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 1000,
-          "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 0.2,
-          "p99Ms": 0.8,
-          "samples": 1011
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 1000,
-          "operation": "jump to the entry just before a checkpoint",
-          "p50Ms": 1.5,
-          "p99Ms": 2.8,
-          "samples": 165
-        },
-        {
-          "entities": 1000,
-          "edits": 10000,
-          "checkpointEvery": 1000,
-          "operation": "jump to the initial state",
-          "p50Ms": 0.6,
           "p99Ms": 0.7,
-          "samples": 433
+          "samples": 556
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 50,
+          "operation": "undo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 14507
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 50,
+          "operation": "redo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 125777
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 50,
+          "operation": "jump to a random entry",
+          "p50Ms": 0.4,
+          "p99Ms": 0.8,
+          "samples": 665
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 50,
+          "operation": "jump to an entry within 100 of the newest",
+          "p50Ms": 0.2,
+          "p99Ms": 0.5,
+          "samples": 1470
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 50,
+          "operation": "jump to the entry just before a checkpoint",
+          "p50Ms": 0.4,
+          "p99Ms": 0.7,
+          "samples": 615
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 50,
+          "operation": "jump to the initial state",
+          "p50Ms": 0.5,
+          "p99Ms": 0.758,
+          "samples": 543
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 100,
+          "operation": "undo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 13709
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 100,
+          "operation": "redo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 123370
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 100,
+          "operation": "jump to a random entry",
+          "p50Ms": 0.4,
+          "p99Ms": 0.919,
+          "samples": 582
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 100,
+          "operation": "jump to an entry within 100 of the newest",
+          "p50Ms": 0.2,
+          "p99Ms": 0.7,
+          "samples": 1147
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 100,
+          "operation": "jump to the entry just before a checkpoint",
+          "p50Ms": 0.5,
+          "p99Ms": 1.2,
+          "samples": 461
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 100,
+          "operation": "jump to the initial state",
+          "p50Ms": 0.5,
+          "p99Ms": 0.932,
+          "samples": 469
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 250,
+          "operation": "undo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 12788
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 250,
+          "operation": "redo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 120617
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 250,
+          "operation": "jump to a random entry",
+          "p50Ms": 0.5,
+          "p99Ms": 0.9,
+          "samples": 521
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 250,
+          "operation": "jump to an entry within 100 of the newest",
+          "p50Ms": 0.2,
+          "p99Ms": 0.5,
+          "samples": 1256
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 250,
+          "operation": "jump to the entry just before a checkpoint",
+          "p50Ms": 0.6,
+          "p99Ms": 1.1,
+          "samples": 438
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 250,
+          "operation": "jump to the initial state",
+          "p50Ms": 0.5,
+          "p99Ms": 0.663,
+          "samples": 538
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 1000,
+          "operation": "undo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 8454
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 1000,
+          "operation": "redo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 129480
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 1000,
+          "operation": "jump to a random entry",
+          "p50Ms": 0.7,
+          "p99Ms": 1.4,
+          "samples": 336
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 1000,
+          "operation": "jump to an entry within 100 of the newest",
+          "p50Ms": 0.2,
+          "p99Ms": 0.5,
+          "samples": 1254
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 1000,
+          "operation": "jump to the entry just before a checkpoint",
+          "p50Ms": 1.2,
+          "p99Ms": 1.985,
+          "samples": 206
+        },
+        {
+          "entities": 1000,
+          "edits": 10000,
+          "checkpointEvery": 1000,
+          "operation": "jump to the initial state",
+          "p50Ms": 0.4,
+          "p99Ms": 0.6,
+          "samples": 564
         },
         {
           "entities": 10000,
@@ -583,7 +583,7 @@
           "operation": "undo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 14490
+          "samples": 14102
         },
         {
           "entities": 10000,
@@ -592,16 +592,16 @@
           "operation": "redo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 125460
+          "samples": 124318
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 25,
           "operation": "jump to a random entry",
-          "p50Ms": 2,
-          "p99Ms": 2.472,
-          "samples": 129
+          "p50Ms": 2.2,
+          "p99Ms": 2.762,
+          "samples": 120
         },
         {
           "entities": 10000,
@@ -609,17 +609,17 @@
           "checkpointEvery": 25,
           "operation": "jump to an entry within 100 of the newest",
           "p50Ms": 2.1,
-          "p99Ms": 3.113,
-          "samples": 130
+          "p99Ms": 2.569,
+          "samples": 132
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 25,
           "operation": "jump to the entry just before a checkpoint",
-          "p50Ms": 2.2,
-          "p99Ms": 3.067,
-          "samples": 112
+          "p50Ms": 2,
+          "p99Ms": 2.5,
+          "samples": 122
         },
         {
           "entities": 10000,
@@ -628,7 +628,7 @@
           "operation": "jump to the initial state",
           "p50Ms": 0.1,
           "p99Ms": 0.3,
-          "samples": 1723
+          "samples": 1699
         },
         {
           "entities": 10000,
@@ -637,7 +637,7 @@
           "operation": "undo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 14244
+          "samples": 13722
         },
         {
           "entities": 10000,
@@ -646,15 +646,15 @@
           "operation": "redo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 129847
+          "samples": 124521
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 50,
           "operation": "jump to a random entry",
-          "p50Ms": 2.1,
-          "p99Ms": 2.766,
+          "p50Ms": 2.2,
+          "p99Ms": 2.849,
           "samples": 118
         },
         {
@@ -662,9 +662,9 @@
           "edits": 3000,
           "checkpointEvery": 50,
           "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 2,
-          "p99Ms": 2.796,
-          "samples": 135
+          "p50Ms": 2.1,
+          "p99Ms": 2.71,
+          "samples": 131
         },
         {
           "entities": 10000,
@@ -672,71 +672,71 @@
           "checkpointEvery": 50,
           "operation": "jump to the entry just before a checkpoint",
           "p50Ms": 2.1,
-          "p99Ms": 3.036,
-          "samples": 117
-        },
-        {
-          "entities": 10000,
-          "edits": 3000,
-          "checkpointEvery": 50,
-          "operation": "jump to the initial state",
-          "p50Ms": 0.1,
-          "p99Ms": 0.3,
-          "samples": 1666
-        },
-        {
-          "entities": 10000,
-          "edits": 3000,
-          "checkpointEvery": 100,
-          "operation": "undo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 13327
-        },
-        {
-          "entities": 10000,
-          "edits": 3000,
-          "checkpointEvery": 100,
-          "operation": "redo",
-          "p50Ms": 0,
-          "p99Ms": 0.1,
-          "samples": 128537
-        },
-        {
-          "entities": 10000,
-          "edits": 3000,
-          "checkpointEvery": 100,
-          "operation": "jump to a random entry",
-          "p50Ms": 2.1,
-          "p99Ms": 2.746,
+          "p99Ms": 2.4,
           "samples": 119
         },
         {
           "entities": 10000,
           "edits": 3000,
-          "checkpointEvery": 100,
-          "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 2.1,
-          "p99Ms": 3.128,
-          "samples": 125
-        },
-        {
-          "entities": 10000,
-          "edits": 3000,
-          "checkpointEvery": 100,
-          "operation": "jump to the entry just before a checkpoint",
-          "p50Ms": 2.3,
-          "p99Ms": 3.88,
-          "samples": 106
-        },
-        {
-          "entities": 10000,
-          "edits": 3000,
-          "checkpointEvery": 100,
+          "checkpointEvery": 50,
           "operation": "jump to the initial state",
           "p50Ms": 0.2,
           "p99Ms": 0.3,
-          "samples": 1641
+          "samples": 1644
+        },
+        {
+          "entities": 10000,
+          "edits": 3000,
+          "checkpointEvery": 100,
+          "operation": "undo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 12614
+        },
+        {
+          "entities": 10000,
+          "edits": 3000,
+          "checkpointEvery": 100,
+          "operation": "redo",
+          "p50Ms": 0,
+          "p99Ms": 0.1,
+          "samples": 126014
+        },
+        {
+          "entities": 10000,
+          "edits": 3000,
+          "checkpointEvery": 100,
+          "operation": "jump to a random entry",
+          "p50Ms": 2.2,
+          "p99Ms": 2.6,
+          "samples": 116
+        },
+        {
+          "entities": 10000,
+          "edits": 3000,
+          "checkpointEvery": 100,
+          "operation": "jump to an entry within 100 of the newest",
+          "p50Ms": 2,
+          "p99Ms": 2.9,
+          "samples": 126
+        },
+        {
+          "entities": 10000,
+          "edits": 3000,
+          "checkpointEvery": 100,
+          "operation": "jump to the entry just before a checkpoint",
+          "p50Ms": 2.2,
+          "p99Ms": 2.678,
+          "samples": 112
+        },
+        {
+          "entities": 10000,
+          "edits": 3000,
+          "checkpointEvery": 100,
+          "operation": "jump to the initial state",
+          "p50Ms": 0.1,
+          "p99Ms": 0.3,
+          "samples": 1704
         },
         {
           "entities": 10000,
@@ -745,7 +745,7 @@
           "operation": "undo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 12535
+          "samples": 12106
         },
         {
           "entities": 10000,
@@ -754,25 +754,25 @@
           "operation": "redo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 120428
+          "samples": 115041
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 250,
           "operation": "jump to a random entry",
-          "p50Ms": 2.2,
-          "p99Ms": 4.6,
-          "samples": 100
+          "p50Ms": 2.3,
+          "p99Ms": 3.451,
+          "samples": 108
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 250,
           "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 2.1,
-          "p99Ms": 2.8,
-          "samples": 121
+          "p50Ms": 2,
+          "p99Ms": 2.4,
+          "samples": 124
         },
         {
           "entities": 10000,
@@ -780,17 +780,17 @@
           "checkpointEvery": 250,
           "operation": "jump to the entry just before a checkpoint",
           "p50Ms": 2.3,
-          "p99Ms": 2.5,
-          "samples": 110
+          "p99Ms": 3.482,
+          "samples": 107
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 250,
           "operation": "jump to the initial state",
-          "p50Ms": 0.1,
+          "p50Ms": 0.2,
           "p99Ms": 0.3,
-          "samples": 1789
+          "samples": 1587
         },
         {
           "entities": 10000,
@@ -799,7 +799,7 @@
           "operation": "undo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 9206
+          "samples": 8788
         },
         {
           "entities": 10000,
@@ -808,25 +808,25 @@
           "operation": "redo",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "samples": 122107
+          "samples": 123604
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 1000,
           "operation": "jump to a random entry",
-          "p50Ms": 2.2,
-          "p99Ms": 2.992,
-          "samples": 109
+          "p50Ms": 2.4,
+          "p99Ms": 3.297,
+          "samples": 104
         },
         {
           "entities": 10000,
           "edits": 3000,
           "checkpointEvery": 1000,
           "operation": "jump to an entry within 100 of the newest",
-          "p50Ms": 2,
-          "p99Ms": 2.576,
-          "samples": 125
+          "p50Ms": 2.1,
+          "p99Ms": 2.3,
+          "samples": 122
         },
         {
           "entities": 10000,
@@ -834,7 +834,7 @@
           "checkpointEvery": 1000,
           "operation": "jump to the entry just before a checkpoint",
           "p50Ms": 2.8,
-          "p99Ms": 3.3,
+          "p99Ms": 3.266,
           "samples": 90
         },
         {
@@ -844,7 +844,7 @@
           "operation": "jump to the initial state",
           "p50Ms": 0.1,
           "p99Ms": 0.3,
-          "samples": 1672
+          "samples": 1730
         },
         {
           "entities": 1000,
@@ -852,8 +852,8 @@
           "checkpointEvery": 250,
           "operation": "edit then read entries",
           "p50Ms": 0.2,
-          "p99Ms": 1.453,
-          "samples": 1148
+          "p99Ms": 1.529,
+          "samples": 1072
         }
       ]
     },
@@ -867,78 +867,78 @@
           "operation": "diff, 6 key object, 1 change",
           "p50Ms": 0,
           "p99Ms": 0,
-          "operationsPerSecond": 3701320,
-          "samples": 925330
+          "operationsPerSecond": 3600484,
+          "samples": 900121
         },
         {
           "operation": "diff, 12 levels deep, 1 change",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "operationsPerSecond": 245770,
-          "samples": 61467
+          "operationsPerSecond": 241616,
+          "samples": 60404
         },
         {
           "operation": "diff, 1,000 entity map, 1 change",
           "p50Ms": 0.2,
           "p99Ms": 0.4,
-          "operationsPerSecond": 4008,
-          "samples": 1002
+          "operationsPerSecond": 4118,
+          "samples": 1030
         },
         {
           "operation": "diff, 10000 entity map, string keys, 1 change",
-          "p50Ms": 1.7,
-          "p99Ms": 1.956,
-          "operationsPerSecond": 578,
-          "samples": 145
+          "p50Ms": 1.8,
+          "p99Ms": 2.1,
+          "operationsPerSecond": 567,
+          "samples": 142
         },
         {
           "operation": "diff, 10000 entity map, integer keys, 1 change",
           "p50Ms": 0.3,
           "p99Ms": 0.5,
-          "operationsPerSecond": 2898,
-          "samples": 725
+          "operationsPerSecond": 2771,
+          "samples": 693
         },
         {
           "operation": "diff, array of 1,000, append",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "operationsPerSecond": 953531,
-          "samples": 238478
+          "operationsPerSecond": 943055,
+          "samples": 235858
         },
         {
           "operation": "diff, array of 1,000, 1 edit",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "operationsPerSecond": 882796,
-          "samples": 220699
+          "operationsPerSecond": 844322,
+          "samples": 211165
         },
         {
           "operation": "diff, unchanged same reference",
           "p50Ms": 0,
           "p99Ms": 0,
-          "operationsPerSecond": 15513619,
-          "samples": 3879956
+          "operationsPerSecond": 16560276,
+          "samples": 4140069
         },
         {
           "operation": "apply, 10000 entity map, 1 replace",
           "p50Ms": 2,
-          "p99Ms": 13.723,
-          "operationsPerSecond": 433,
-          "samples": 114
+          "p99Ms": 2.284,
+          "operationsPerSecond": 467,
+          "samples": 117
         },
         {
           "operation": "apply, 12 levels deep, 1 replace",
           "p50Ms": 0,
           "p99Ms": 0.1,
-          "operationsPerSecond": 279888,
-          "samples": 70000
+          "operationsPerSecond": 261352,
+          "samples": 65338
         },
         {
           "operation": "apply, 10000 entity map, 100 replaces in one call",
-          "p50Ms": 2.1,
-          "p99Ms": 2.581,
-          "operationsPerSecond": 479,
-          "samples": 120
+          "p50Ms": 2,
+          "p99Ms": 2.677,
+          "operationsPerSecond": 492,
+          "samples": 124
         }
       ]
     },
@@ -959,7 +959,7 @@
           "historySerializedCharacters": 2728708,
           "snapshotsSerializedCharacters": 63748278,
           "serializedRatio": 23.4,
-          "historyHeapMb": 6.09,
+          "historyHeapMb": 6.1,
           "snapshotsHeapMb": 3.34,
           "heapRatio": 0.5
         },
@@ -983,7 +983,7 @@
           "historySerializedCharacters": 3441127,
           "snapshotsSerializedCharacters": 6904149969,
           "serializedRatio": 2006.4,
-          "historyHeapMb": 13.63,
+          "historyHeapMb": 13.62,
           "snapshotsHeapMb": 1313.29,
           "heapRatio": 96.4
         },
@@ -1000,7 +1000,7 @@
           "checkpointEvery": 25,
           "edits": 10000,
           "entities": 1000,
-          "historyHeapMb": 7.67,
+          "historyHeapMb": 7.68,
           "serializedCharacters": 2800876
         },
         {
@@ -1080,7 +1080,7 @@
           "pendingLimit": 0,
           "edits": 2000,
           "entities": 1000,
-          "burstMsPerEdit": 0.3044,
+          "burstMsPerEdit": 0.2936,
           "pendingHeapMb": 0
         },
         {
@@ -1088,7 +1088,7 @@
           "pendingLimit": 16,
           "edits": 2000,
           "entities": 1000,
-          "burstMsPerEdit": 0.2872,
+          "burstMsPerEdit": 0.2893,
           "pendingHeapMb": 0.02
         },
         {
@@ -1096,7 +1096,7 @@
           "pendingLimit": 64,
           "edits": 2000,
           "entities": 1000,
-          "burstMsPerEdit": 0.2828,
+          "burstMsPerEdit": 0.2825,
           "pendingHeapMb": 0.12
         },
         {
@@ -1104,7 +1104,7 @@
           "pendingLimit": 256,
           "edits": 2000,
           "entities": 1000,
-          "burstMsPerEdit": 0.2895,
+          "burstMsPerEdit": 0.2695,
           "pendingHeapMb": 0.49
         },
         {
@@ -1112,7 +1112,7 @@
           "pendingLimit": 1024,
           "edits": 2000,
           "entities": 1000,
-          "burstMsPerEdit": 0.2115,
+          "burstMsPerEdit": 0.1938,
           "pendingHeapMb": 2.37
         },
         {
@@ -1120,24 +1120,24 @@
           "historyEntries": 1000,
           "entities": 1000,
           "serializedCharacters": 326159,
-          "saveMs": 0.8,
-          "loadMs": 3.1
+          "saveMs": 0.9,
+          "loadMs": 3.2
         },
         {
           "kind": "serialization",
           "historyEntries": 10000,
           "entities": 1000,
           "serializedCharacters": 2734742,
-          "saveMs": 7.9,
-          "loadMs": 27.4
+          "saveMs": 8.3,
+          "loadMs": 27.3
         }
       ]
     }
   },
   "durationsMs": {
-    "recording": 63448,
-    "navigation": 119151,
-    "throughput": 5108,
-    "memory": 160298
+    "recording": 105634,
+    "navigation": 119113,
+    "throughput": 5111,
+    "memory": 147667
   }
 }

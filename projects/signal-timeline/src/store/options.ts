@@ -30,11 +30,16 @@ export type TimelineKeyOptions<State> =
  */
 export interface TimelineCoalesceOptions<State> {
   /**
-   * A change within this many milliseconds of the previous change joins the open entry.
+   * A change within this many milliseconds of the previous change joins the open entry. It
+   * applies to every change that has no key, so unrelated edits made in quick succession merge
+   * as well. Use `key` when only edits of one kind should merge.
    */
   readonly windowMs?: number;
   /**
    * Consecutive changes that return the same string join one entry. `undefined` ends the entry.
+   * An entry joined by key stays open, however long it takes, until a different change, an
+   * undo, a redo, a jump or `endCoalescing` seals it. To close it after a pause, call
+   * `beginCoalescing` and `endCoalescing` from a timer.
    */
   readonly key?: (change: TimelineChange<State>) => string | undefined;
 }

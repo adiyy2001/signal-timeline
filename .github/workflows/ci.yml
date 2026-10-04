@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+
+jobs:
+  verify:
+    name: Verify on Angular 22
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+      - uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec cypress install
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - name: Unit and integration tests with the coverage gate
+        run: pnpm test:coverage
+      - run: pnpm test:types
+      - run: pnpm build
+      - name: Tarball, publint and arethetypeswrong
+        run: node tools/check-tarball.mjs
+      - run: pnpm build:demo
+      - name: End to end tests on the production build
+        run: node tools/run-e2e.mjs --skip-build
+      - name: Lighthouse on the production build
+        run: node tools/lighthouse.mjs
+      - run: node tools/check-licenses.mjs
+      - run: pnpm docs:api
+      - run: node tools/build-site.mjs --skip-build
+      - name: Must-have checks against the tarball and the production build
+        run: node tools/verify-must-haves.mjs
+      - uses: actions/upload-artifact@v7.0.1
+        if: always()
+        with:
+          name: verify-reports
+          path: |
+            coverage/
+            e2e/screenshots/
+            e2e/videos/
+          if-no-files-found: ignore
+
+  compat:
+    name: Unit tests and library build on Angular ${{ matrix.angular }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: ['21', '22']
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Angular 21 with @ngrx/signals 21
+        if: matrix.angular == '21'
+        run: node tools/compat.mjs 21
+      - name: Angular 22 with @ngrx/signals 22
+        if: matrix.angular == '22'
+        run: pnpm exec ng test signal-timeline --no-watch && pnpm test:types && pnpm build
+
+  pack:
+    name: Build the release tarball with the Angular 21 compiler
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm pack:release
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: tarball
+          path: tmp/pack/*.tgz
+          if-no-files-found: error
+
+  consumer:
+    name: A fresh Angular ${{ matrix.angular }} app uses the tarball
+    needs: pack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: ['21', '22']
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24.21.0
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: tarball
+          path: tarball
+      - run: node tools/consumer-smoke.mjs ${{ matrix.angular }} --tarball="$(ls "$PWD"/tarball/*.tgz)"

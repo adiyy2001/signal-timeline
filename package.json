@@ -12,6 +12,7 @@
     "typecheck": "node tools/typecheck.mjs",
     "test": "ng test signal-timeline --no-watch",
     "test:coverage": "ng test signal-timeline --no-watch --coverage && node tools/check-coverage.mjs",
+    "test:types": "tsc --noEmit -p projects/signal-timeline/tsconfig.type-tests.json",
     "build": "ng build signal-timeline"
   },
   "devDependencies": {

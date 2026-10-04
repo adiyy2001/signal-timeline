@@ -20,6 +20,7 @@ export interface HistoryNode<S> {
   pending: PendingChange<S> | undefined;
   checkpoint: S | undefined;
   key: string | undefined;
+  changedKeys: readonly string[];
   open: boolean;
   merged: boolean;
 }
@@ -32,6 +33,7 @@ export interface NodeInit<S> {
   readonly label: string;
   readonly timestamp: number;
   readonly key?: string;
+  readonly changedKeys?: readonly string[];
   readonly forward?: Patch;
   readonly inverse?: Patch;
   readonly pending?: PendingChange<S>;
@@ -74,6 +76,7 @@ export class HistoryTree<S> {
       pending: undefined,
       checkpoint: root.checkpoint,
       key: undefined,
+      changedKeys: [],
       open: false,
       merged: false,
     });
@@ -130,6 +133,7 @@ export class HistoryTree<S> {
       pending: init.pending,
       checkpoint: init.checkpoint,
       key: init.key,
+      changedKeys: init.changedKeys ?? [],
       open: false,
       merged: false,
     };
@@ -181,6 +185,7 @@ export class HistoryTree<S> {
     child.checkpoint = checkpoint;
     child.label = label;
     child.key = undefined;
+    child.changedKeys = [];
     child.open = false;
     child.merged = false;
     this.nodes.delete(oldRoot.id);

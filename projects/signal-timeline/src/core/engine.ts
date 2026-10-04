@@ -3,6 +3,7 @@ import { isCheckpointDepth, nearestCheckpoint, pathFromAnchor } from './checkpoi
 import { systemClock, type Clock } from './clock';
 import { diffPair, type PatchPair } from './diff';
 import { HistoryTree, type HistoryNode, type NodeId, type NodeView } from './history-tree';
+import { parsePointer } from './json-pointer';
 import { PatchError, type Patch } from './patch';
 
 export class TimelineError extends Error {
@@ -92,6 +93,29 @@ function rootsChanged(before: object, after: object): boolean {
   );
 }
 
+function changedRootKeys(before: object, after: object): string[] {
+  const beforeRecord = before as Record<string, unknown>;
+  const afterRecord = after as Record<string, unknown>;
+  const keys = new Set([...Object.keys(beforeRecord), ...Object.keys(afterRecord)]);
+  return [...keys].filter(
+    (key) =>
+      !Object.hasOwn(beforeRecord, key) ||
+      !Object.hasOwn(afterRecord, key) ||
+      !Object.is(beforeRecord[key], afterRecord[key]),
+  );
+}
+
+function rootKeysOfPatch(patch: Patch): string[] {
+  const keys = new Set<string>();
+  for (const operation of patch) {
+    const [first] = parsePointer(operation.path);
+    if (first !== undefined) {
+      keys.add(first);
+    }
+  }
+  return [...keys];
+}
+
 export class TimelineEngine<S extends object> {
   private tree: HistoryTree<S>;
   private currentNodeId: NodeId;
@@ -145,7 +169,7 @@ export class TimelineEngine<S extends object> {
     options: EngineOptions = {},
   ): TimelineEngine<S> {
     const engine = new TimelineEngine<S>(snapshot.root.state, options);
-    engine.adopt(snapshot);
+    engine.load(snapshot);
     return engine;
   }
 
@@ -368,6 +392,23 @@ export class TimelineEngine<S extends object> {
     this.changed();
   }
 
+  addRootKey(key: string, value: unknown): void {
+    this.assertNoTransaction('addRootKey');
+    if (Object.hasOwn(this.currentState, key)) {
+      throw new TimelineError(`The state already has the key "${key}"`);
+    }
+    const extend = (state: S): S => ({ ...state, [key]: value });
+    for (const node of this.tree.all()) {
+      if (node.checkpoint !== undefined) {
+        node.checkpoint = extend(node.checkpoint);
+      }
+      if (node.pending !== undefined) {
+        node.pending = { before: extend(node.pending.before), after: extend(node.pending.after) };
+      }
+    }
+    this.currentState = extend(this.currentState);
+  }
+
   snapshot(): EngineSnapshot<S> {
     this.assertNoTransaction('snapshot');
     const root = this.tree.require(this.tree.rootId);
@@ -401,7 +442,8 @@ export class TimelineEngine<S extends object> {
     };
   }
 
-  private adopt(snapshot: EngineSnapshot<S>): void {
+  load(snapshot: EngineSnapshot<S>): void {
+    this.assertNoTransaction('load');
     const { root } = snapshot;
     const tree = new HistoryTree<S>(
       { id: root.id, label: root.label, timestamp: root.timestamp, checkpoint: root.state },
@@ -422,6 +464,7 @@ export class TimelineEngine<S extends object> {
           timestamp: entry.timestamp,
           forward: entry.forward,
           inverse: entry.inverse,
+          changedKeys: rootKeysOfPatch(entry.forward),
           checkpoint: isCheckpointDepth(depth, this.checkpointEvery) ? state : undefined,
         });
       } catch (error) {
@@ -481,6 +524,7 @@ export class TimelineEngine<S extends object> {
       throw new TimelineError('An open entry lost its pending change');
     }
     open.pending = { before: open.pending.before, after };
+    open.changedKeys = changedRootKeys(open.pending.before, after);
     open.timestamp = now;
     open.merged = true;
     if (open.checkpoint !== undefined) {
@@ -502,6 +546,10 @@ export class TimelineEngine<S extends object> {
       label: change.label,
       timestamp: change.timestamp,
       key: change.key,
+      changedKeys:
+        change.pair === undefined
+          ? changedRootKeys(this.currentState, change.after)
+          : rootKeysOfPatch(change.pair.forward),
       forward: change.pair?.forward,
       inverse: change.pair?.inverse,
       pending:

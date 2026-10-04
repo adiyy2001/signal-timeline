@@ -746,3 +746,110 @@ describe('invalid snapshots', () => {
     expect(() => TimelineEngine.restore({ ...snapshot, currentId: 500 })).toThrow('does not exist');
   });
 });
+
+describe('changed keys of an entry', () => {
+  it('lists the root keys a recorded change touched', () => {
+    const { engine, edit } = createFixture();
+    edit({ count: 1, meta: { title: 'x' } });
+    expect(engine.node(engine.currentId)?.changedKeys).toEqual(['count', 'meta']);
+    expect(engine.node(engine.rootId)?.changedKeys).toEqual([]);
+  });
+
+  it('follows a merged entry, dropping keys that came back', () => {
+    const { engine, edit } = createFixture({ coalesceWindowMs: 100 });
+    edit({ count: 1 });
+    edit({ meta: { title: 'x' } });
+    expect(engine.node(engine.currentId)?.changedKeys).toEqual(['count', 'meta']);
+    edit({ count: 0 });
+    expect(engine.node(engine.currentId)?.changedKeys).toEqual(['meta']);
+    edit({ items: ['a'] });
+    expect(engine.node(engine.currentId)?.changedKeys).toEqual(['items', 'meta']);
+  });
+
+  it('reads the keys of a transaction from its patch', () => {
+    const { engine } = createFixture();
+    engine.begin(engine.state);
+    const id = engine.commit('t', { ...engine.state, items: ['a'] });
+    expect(id).toBeDefined();
+    expect(engine.node(engine.currentId)?.changedKeys).toEqual(['items']);
+  });
+
+  it('derives the keys of restored entries from their patches', () => {
+    const { engine, edit } = createFixture();
+    edit({ count: 1 });
+    edit({ items: ['a'] });
+    const restored = TimelineEngine.restore(engine.snapshot());
+    expect(restored.nodes().map((node) => node.changedKeys)).toEqual([[], ['count'], ['items']]);
+  });
+
+  it('clears the keys of a root that was advanced by pruning', () => {
+    const { engine, edit } = createFixture({ maxEntries: 1 });
+    edit({ count: 1 });
+    edit({ count: 2 });
+    expect(engine.node(engine.rootId)?.changedKeys).toEqual([]);
+  });
+});
+
+describe('adding a root key', () => {
+  it('extends the current state and every earlier state with a constant slice', () => {
+    const { engine, edit } = createFixture({ checkpointEvery: 2 });
+    edit({ count: 1 });
+    edit({ count: 2 });
+    edit({ count: 3 });
+    const early = engine.nodes()[1]?.id as number;
+    engine.addRootKey('late', { v: 1 });
+    expect(engine.state).toMatchObject({ count: 3, late: { v: 1 } });
+    for (const node of engine.nodes()) {
+      expect(engine.stateAt(node.id)).toHaveProperty('late', { v: 1 });
+    }
+    expect(engine.stateAt(early)).toMatchObject({ count: 1 });
+  });
+
+  it('extends entries that are still pending, so patches stay empty for the new key', () => {
+    const { engine, edit } = createFixture();
+    edit({ count: 1 });
+    expect(engine.pendingCount).toBe(1);
+    engine.addRootKey('late', 1);
+    const patch = engine.patchOf(engine.currentId);
+    expect(patch?.forward).toEqual([{ op: 'replace', path: '/count', value: 1 }]);
+  });
+
+  it('records changes of the new key like any other', () => {
+    const { engine } = createFixture();
+    engine.addRootKey('late', { v: 1 });
+    engine.record({ ...engine.state, late: { v: 2 } } as Doc, { label: 'late' });
+    expect(engine.patchOf(engine.currentId)?.forward).toEqual([
+      { op: 'replace', path: '/late/v', value: 2 },
+    ]);
+    expect(engine.undo()?.after).toMatchObject({ late: { v: 1 } });
+  });
+
+  it('refuses a key that exists and a call inside a transaction', () => {
+    const { engine } = createFixture();
+    expect(() => engine.addRootKey('count', 1)).toThrow(TimelineError);
+    engine.begin(engine.state);
+    expect(() => engine.addRootKey('late', 1)).toThrow('inside a transaction');
+  });
+});
+
+describe('loading a snapshot into an engine', () => {
+  it('replaces the history of an existing engine and keeps its listeners', () => {
+    const source = createFixture();
+    source.edit({ count: 1 });
+    source.edit({ count: 2 });
+    const target = createFixture();
+    const listener = vi.fn();
+    target.engine.subscribe(listener);
+    target.engine.load(source.engine.snapshot());
+    expect(target.engine.size).toBe(2);
+    expect(target.engine.state).toEqual(source.engine.state);
+    expect(listener).toHaveBeenCalled();
+  });
+
+  it('refuses to load inside a transaction', () => {
+    const { engine } = createFixture();
+    const snapshot = engine.snapshot();
+    engine.begin(engine.state);
+    expect(() => engine.load(snapshot)).toThrow('inside a transaction');
+  });
+});

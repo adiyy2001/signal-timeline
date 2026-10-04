@@ -1,0 +1,82 @@
+<section class="diff" aria-label="Changes in the selected entry">
+  @if (entry(); as selected) {
+    <h3 class="title">Entry {{ selected.id }}: {{ selected.label }}</h3>
+    @if (selected.parentId === undefined) {
+      <p class="note">This is the initial state. Nothing changed to get here.</p>
+    } @else {
+      <p class="meta">
+        <span>Touched: {{ touched() }}</span>
+        @if (time(); as at) {
+          <span>at {{ at }}</span>
+        }
+      </p>
+      @if (rows().length === 0) {
+        <p class="note">This entry has no operations. The state it records equals its parent.</p>
+      } @else {
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Operations of this entry">
+          <table>
+            <caption class="visually-hidden">
+              Operations applied by entry
+              {{
+                selected.id
+              }}, with the value before and after
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Operation</th>
+                <th scope="col">Path</th>
+                <th scope="col">Before</th>
+                <th scope="col">After</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of rows(); track $index) {
+                <tr>
+                  <td>
+                    <span class="op op-{{ row.operation }}">{{ row.operation }}</span>
+                  </td>
+                  <td>
+                    <code class="path">{{ formatPath(row.path) }}</code>
+                  </td>
+                  <td>
+                    @if (row.before.present) {
+                      <code class="value" [attr.title]="row.before.full">{{
+                        row.before.text
+                      }}</code>
+                      @if (row.before.truncated) {
+                        <details>
+                          <summary>Show the whole value</summary>
+                          <pre>{{ row.before.full }}</pre>
+                        </details>
+                      }
+                    } @else {
+                      <span class="absent">none</span>
+                    }
+                  </td>
+                  <td>
+                    @if (row.after.present) {
+                      <code class="value" [attr.title]="row.after.full">{{ row.after.text }}</code>
+                      @if (row.after.truncated) {
+                        <details>
+                          <summary>Show the whole value</summary>
+                          <pre>{{ row.after.full }}</pre>
+                        </details>
+                      }
+                    } @else {
+                      <span class="absent">none</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (hiddenRowCount() > 0) {
+          <p class="note">{{ hiddenRowCount() }} more operations are not shown.</p>
+        }
+      }
+    }
+  } @else {
+    <p class="note">No entry to show.</p>
+  }
+</section>

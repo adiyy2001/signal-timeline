@@ -1,7 +1,7 @@
 import * as fc from 'fast-check';
-import { assertProperty } from '../../src/core/testing/property';
+import { assertProperty } from '../../../src/core/testing/property';
 import { layoutTree } from './layout-tree';
-import { entriesFromParents } from './testing/entries';
+import { entriesFromParents } from '../testing/entries';
 
 const parentsArbitrary = fc
   .integer({ min: 0, max: 60 })

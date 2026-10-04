@@ -1,0 +1,150 @@
+:host {
+  --st-bg: #ffffff;
+  --st-surface: #f4f6f9;
+  --st-hover: #e3e8ef;
+  --st-text: #16191d;
+  --st-text-muted: #4a5360;
+  --st-border: #7d8896;
+  --st-accent: #1a56db;
+  --st-edge: #5b6573;
+  --st-edge-active: #1a56db;
+  --st-focus: #b4400a;
+  --st-op-add: #12683a;
+  --st-op-remove: #b0261e;
+  --st-op-replace: #8a5300;
+
+  display: block;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid var(--st-border);
+  border-radius: 10px;
+  background: var(--st-bg);
+  color: var(--st-text);
+  color-scheme: light;
+  font:
+    0.875rem/1.45 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host(:not([data-theme='light'])) {
+    --st-bg: #11151a;
+    --st-surface: #1a2028;
+    --st-hover: #28313c;
+    --st-text: #e8ebef;
+    --st-text-muted: #aab3be;
+    --st-border: #707b89;
+    --st-accent: #7fa9ff;
+    --st-edge: #96a1af;
+    --st-edge-active: #7fa9ff;
+    --st-focus: #ffb067;
+    --st-op-add: #6fdc9b;
+    --st-op-remove: #ff8f86;
+    --st-op-replace: #f0b45a;
+
+    color-scheme: dark;
+  }
+}
+
+:host([data-theme='dark']) {
+  --st-bg: #11151a;
+  --st-surface: #1a2028;
+  --st-hover: #28313c;
+  --st-text: #e8ebef;
+  --st-text-muted: #aab3be;
+  --st-border: #707b89;
+  --st-accent: #7fa9ff;
+  --st-edge: #96a1af;
+  --st-edge-active: #7fa9ff;
+  --st-focus: #ffb067;
+  --st-op-add: #6fdc9b;
+  --st-op-remove: #ff8f86;
+  --st-op-replace: #f0b45a;
+
+  color-scheme: dark;
+}
+
+.panel {
+  display: grid;
+  gap: 16px;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.subheading {
+  margin: 0 0 8px;
+  font-size: 0.9375rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  min-width: 64px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--st-border);
+  border-radius: 6px;
+  background: var(--st-surface);
+  color: var(--st-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--st-hover);
+}
+
+button:disabled {
+  color: var(--st-text-muted);
+  border-style: dashed;
+  cursor: default;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--st-focus);
+  outline-offset: 2px;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.column {
+  min-width: 0;
+}
+
+@media (forced-colors: active) {
+  :host {
+    border-color: CanvasText;
+  }
+
+  button {
+    border-color: ButtonText;
+  }
+
+  button:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+}

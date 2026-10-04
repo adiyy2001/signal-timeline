@@ -2,6 +2,7 @@
   "extends": "../tsconfig.lib.json",
   "compilerOptions": {
     "outDir": "../../../out-tsc/devtools",
+    "rootDir": "..",
     "paths": {
       "signal-timeline": ["../src/public-api.ts"]
     }

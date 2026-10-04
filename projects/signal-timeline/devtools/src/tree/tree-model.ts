@@ -1,5 +1,5 @@
 import type { TimelineEntry } from 'signal-timeline';
-import type { EntriesById } from './active-path';
+import type { EntriesById } from '../active-path';
 import { layoutTree, type LayoutEntry, type PlacedNode } from './layout-tree';
 
 export interface TreeNodeView extends PlacedNode {

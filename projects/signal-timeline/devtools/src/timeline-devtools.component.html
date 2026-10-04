@@ -1,0 +1,38 @@
+<section class="panel" aria-label="Timeline devtools">
+  <header class="bar">
+    <h2 class="heading">Timeline</h2>
+    <div class="toolbar" role="group" aria-label="History controls">
+      <button type="button" (click)="jumpToFirst()" [disabled]="atStart()">First</button>
+      <button type="button" (click)="timeline().undo()" [disabled]="!timeline().canUndo()">
+        Undo
+      </button>
+      <button type="button" (click)="timeline().redo()" [disabled]="!timeline().canRedo()">
+        Redo
+      </button>
+      <button type="button" (click)="jumpToLast()" [disabled]="atEnd()">Last</button>
+    </div>
+  </header>
+
+  <st-timeline-scrubber
+    [path]="branchEntries()"
+    [currentId]="currentId()"
+    (jump)="jumpTo($event)"
+  />
+
+  <div class="body">
+    <div class="column">
+      <h3 class="subheading">Branches</h3>
+      <st-branch-tree
+        [entries]="entries()"
+        [currentId]="currentId()"
+        [activePath]="activePath()"
+        (activate)="jumpTo($event)"
+        (inspect)="inspect($event)"
+      />
+    </div>
+    <div class="column">
+      <h3 class="subheading">Selected entry</h3>
+      <st-entry-diff [entry]="inspectedEntry()" [patches]="inspectedPatches()" />
+    </div>
+  </div>
+</section>

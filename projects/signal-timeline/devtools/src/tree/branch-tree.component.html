@@ -1,0 +1,60 @@
+<p class="hint" [id]="hintId">
+  Arrow keys move through the tree. Right and Left open and close a branch. Enter jumps to the
+  entry. The diamond marks the current entry.
+</p>
+<div class="scroller">
+  <svg
+    class="tree"
+    role="tree"
+    aria-label="History tree"
+    [attr.aria-describedby]="hintId"
+    [attr.width]="width()"
+    [attr.height]="height()"
+    [attr.viewBox]="'0 0 ' + width() + ' ' + height()"
+    (focusout)="onFocusOut($event)"
+  >
+    <g aria-hidden="true" class="edges">
+      @for (edge of edges(); track edge.key) {
+        <path class="edge" [class.active]="edge.active" [attr.d]="edge.d" />
+      }
+    </g>
+    @for (view of views(); track view.node.id) {
+      <g
+        role="treeitem"
+        class="node"
+        [class.current]="view.node.current"
+        [class.active]="view.node.onActivePath"
+        [attr.data-node-id]="view.node.id"
+        [attr.transform]="'translate(' + view.x + ' ' + view.y + ')'"
+        [attr.tabindex]="view.node.id === tabStopId() ? 0 : -1"
+        [attr.aria-label]="view.name"
+        [attr.aria-level]="view.node.row + 1"
+        [attr.aria-setsize]="view.node.setSize"
+        [attr.aria-posinset]="view.node.positionInSet"
+        [attr.aria-selected]="view.node.current"
+        [attr.aria-expanded]="view.node.expandable ? view.node.expanded : null"
+        (focus)="onFocus(view.node.id)"
+        (click)="onClick(view.node.id)"
+        (keydown)="onKeydown($event, view.node.id)"
+      >
+        <rect
+          class="box"
+          x="-14"
+          [attr.y]="-focusBox.height / 2"
+          rx="6"
+          [attr.width]="focusBox.width"
+          [attr.height]="focusBox.height"
+        />
+        @if (view.node.expandable && !view.node.expanded) {
+          <circle class="collapsed-ring" r="11" />
+        }
+        @if (view.node.current) {
+          <rect class="shape" x="-8" y="-8" width="16" height="16" transform="rotate(45)" />
+        } @else {
+          <circle class="shape" r="6" />
+        }
+        <text class="text" x="16" y="4" aria-hidden="true">{{ view.text }}</text>
+      </g>
+    }
+  </svg>
+</div>

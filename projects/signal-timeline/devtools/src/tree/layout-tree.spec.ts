@@ -1,5 +1,5 @@
 import { layoutTree, type LayoutEntry } from './layout-tree';
-import { entriesFromParents } from './testing/entries';
+import { entriesFromParents } from '../testing/entries';
 
 function layoutEntries(parents: readonly number[]): readonly LayoutEntry[] {
   return entriesFromParents(parents);

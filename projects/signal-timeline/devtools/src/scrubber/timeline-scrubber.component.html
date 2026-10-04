@@ -1,0 +1,18 @@
+<label class="scrubber">
+  <span class="caption">Position on this branch</span>
+  <input
+    type="range"
+    min="0"
+    [max]="lastIndex()"
+    step="1"
+    [value]="index()"
+    [disabled]="disabled()"
+    [attr.aria-valuetext]="valueText()"
+    (input)="onInput($event)"
+    (keydown)="onKeydown($event)"
+  />
+</label>
+<output class="readout">
+  <span class="step">Step {{ index() }} of {{ lastIndex() }}</span>
+  <span class="label">{{ currentLabel() }}</span>
+</output>

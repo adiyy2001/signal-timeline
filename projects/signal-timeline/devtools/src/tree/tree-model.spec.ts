@@ -1,6 +1,6 @@
-import { indexEntries, pathFromRoot } from './active-path';
+import { indexEntries, pathFromRoot } from '../active-path';
 import { buildTreeModel } from './tree-model';
-import { entriesFromParents, treeParents } from './testing/entries';
+import { entriesFromParents, treeParents } from '../testing/entries';
 
 const entries = entriesFromParents(treeParents);
 const byId = indexEntries(entries);

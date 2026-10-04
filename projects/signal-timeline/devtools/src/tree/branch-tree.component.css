@@ -1,0 +1,114 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.hint {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  color: var(--st-text-muted);
+}
+
+.scroller {
+  overflow: auto;
+  max-height: 360px;
+  border: 1px solid var(--st-border);
+  border-radius: 6px;
+  background: var(--st-surface);
+}
+
+.tree {
+  display: block;
+  font-family: inherit;
+}
+
+.edge {
+  fill: none;
+  stroke: var(--st-edge);
+  stroke-width: 1.5;
+}
+
+.edge.active {
+  stroke: var(--st-edge-active);
+  stroke-width: 3;
+}
+
+.node {
+  cursor: pointer;
+  outline: none;
+}
+
+.box {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 3;
+  pointer-events: all;
+}
+
+.node:hover .box {
+  fill: var(--st-hover);
+}
+
+.node:focus-visible .box {
+  stroke: var(--st-focus);
+}
+
+.shape {
+  fill: var(--st-surface);
+  stroke: var(--st-edge);
+  stroke-width: 2;
+}
+
+.node.active .shape {
+  fill: var(--st-edge-active);
+  stroke: var(--st-edge-active);
+}
+
+.node.current .shape {
+  fill: var(--st-accent);
+  stroke: var(--st-text);
+  stroke-width: 2;
+}
+
+.collapsed-ring {
+  fill: none;
+  stroke: var(--st-edge);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+
+.text {
+  fill: var(--st-text);
+  font-size: 12px;
+}
+
+.node.current .text {
+  font-weight: 700;
+}
+
+@media (forced-colors: active) {
+  .edge,
+  .edge.active,
+  .shape,
+  .collapsed-ring {
+    stroke: CanvasText;
+  }
+
+  .shape,
+  .node.active .shape {
+    fill: Canvas;
+  }
+
+  .node.current .shape {
+    fill: Highlight;
+    stroke: CanvasText;
+  }
+
+  .text {
+    fill: CanvasText;
+  }
+
+  .node:focus-visible .box {
+    stroke: Highlight;
+  }
+}

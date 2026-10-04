@@ -1,4 +1,5 @@
-packages: []
+packages:
+  - projects/signal-timeline
 allowBuilds:
   '@parcel/watcher': true
   cypress: true

@@ -1,7 +1,30 @@
 {
   "name": "signal-timeline",
   "version": "0.0.1",
+  "description": "Undo, redo, transactions, a branching undo tree, history shared across stores and a time-travel panel for NgRx SignalStore, stored as patches.",
   "license": "MIT",
+  "author": "Adrian Turbiński",
+  "keywords": [
+    "angular",
+    "ngrx",
+    "signals",
+    "signalstore",
+    "undo",
+    "redo",
+    "history",
+    "time-travel",
+    "json-patch",
+    "devtools"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrianturbinski/signal-timeline.git",
+    "directory": "projects/signal-timeline"
+  },
+  "bugs": {
+    "url": "https://github.com/adrianturbinski/signal-timeline/issues"
+  },
+  "homepage": "https://github.com/adrianturbinski/signal-timeline#readme",
   "peerDependencies": {
     "@angular/core": "^21.0.0 || ^22.0.0",
     "@ngrx/signals": "^21.0.0 || ^22.0.0",
@@ -10,5 +33,10 @@
   "dependencies": {
     "tslib": "^2.8.1"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "directory": "../../dist/signal-timeline"
+  }
 }

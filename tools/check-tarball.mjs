@@ -43,3 +43,14 @@ console.log(`tarball ${tarball} lists ${listing.length} files, including both en
 console.log(
   run('pnpm', ['exec', 'publint', 'run', join(packDirectory, tarball), '--level', 'suggestion']),
 );
+console.log(
+  run('pnpm', [
+    'exec',
+    'attw',
+    join(packDirectory, tarball),
+    '--profile',
+    'esm-only',
+    '--format',
+    'table-flipped',
+  ]),
+);

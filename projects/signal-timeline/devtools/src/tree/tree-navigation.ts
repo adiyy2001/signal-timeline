@@ -36,10 +36,6 @@ function onArrowLeft(nodes: readonly TreeNodeView[], index: number): TreeAction 
   return node.parentId === undefined ? none : { kind: 'focus', id: node.parentId };
 }
 
-/**
- * Maps a key to what the W3C tree view pattern does with it. `nodes` are in keyboard order and
- * `focusedId` is the node holding focus. Returns `none` for keys the pattern does not use.
- */
 export function navigateTree(
   key: string,
   nodes: readonly TreeNodeView[],

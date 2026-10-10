@@ -48,9 +48,6 @@ export type Operation = AddOperation | RemoveOperation | ReplaceOperation;
  */
 export type Patch = readonly Operation[];
 
-/**
- * Thrown when a pointer is malformed or an operation does not fit the document it is applied to.
- */
 export class PatchError extends Error {
   readonly operationIndex: number | undefined;
   readonly path: string | undefined;

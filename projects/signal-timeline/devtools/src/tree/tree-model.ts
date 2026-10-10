@@ -68,11 +68,6 @@ function visibleLayoutEntries(
   return visible;
 }
 
-/**
- * Turns the entries into what the tree draws: the visible nodes in keyboard order with their
- * grid position and state, and the edges between them. Entries on the way to the current
- * entry cannot be collapsed, so the current entry is always visible.
- */
 export function buildTreeModel(
   entries: readonly TimelineEntry[],
   byId: EntriesById,

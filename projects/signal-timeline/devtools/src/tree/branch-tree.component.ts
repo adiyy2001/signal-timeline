@@ -54,9 +54,6 @@ function edgePath(from: PlacedView, to: PlacedView): string {
   return `M ${from.x} ${from.y} V ${bend} H ${to.x} V ${to.y}`;
 }
 
-/**
- * The branch tree of a timeline, drawn in SVG and operated like the W3C tree view pattern.
- */
 @Component({
   selector: 'st-branch-tree',
   templateUrl: './branch-tree.component.html',

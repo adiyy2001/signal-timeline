@@ -495,18 +495,7 @@ export class TimelineEngine<S extends object> {
       const route = extendRoute(parent, entry);
       const needsState = checkpoint || entry.id === snapshot.currentId || childCount !== 1;
       const state = needsState ? this.resolveRoute(route) : undefined;
-      try {
-        tree.insertNode(entry.parentId, entry.id, {
-          label: entry.label,
-          timestamp: entry.timestamp,
-          forward: entry.forward,
-          inverse: entry.inverse,
-          changedKeys: entry.changedKeys,
-          checkpoint: checkpoint ? state : undefined,
-        });
-      } catch (error) {
-        throw new SnapshotError(error instanceof Error ? error.message : String(error));
-      }
+      this.insertSnapshotEntry(tree, entry, checkpoint ? state : undefined);
       if (entry.id === snapshot.currentId) {
         currentState = state;
       }
@@ -517,6 +506,48 @@ export class TimelineEngine<S extends object> {
       }
       requested.set(entry.id, entry.lastVisitedChild);
     }
+    this.restoreLastVisited(tree, requested);
+    if (currentState === undefined) {
+      throw new SnapshotError(`The current entry ${snapshot.currentId} does not exist`);
+    }
+    this.tree = tree;
+    this.currentNodeId = snapshot.currentId;
+    this.currentState = currentState;
+    this.discardTransientState();
+    this.prune();
+    this.changed();
+  }
+
+  private discardTransientState(): void {
+    this.openNodeId = undefined;
+    this.settledQueue.length = 0;
+    this.transactionStarts.length = 0;
+    this.gestureKeys.length = 0;
+  }
+
+  private insertSnapshotEntry(
+    tree: HistoryTree<S>,
+    entry: SnapshotNode,
+    checkpoint: S | undefined,
+  ): void {
+    try {
+      tree.insertNode(entry.parentId, entry.id, {
+        label: entry.label,
+        timestamp: entry.timestamp,
+        forward: entry.forward,
+        inverse: entry.inverse,
+        changedKeys: entry.changedKeys,
+        checkpoint,
+      });
+    } catch (error) {
+      throw new SnapshotError(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private restoreLastVisited(
+    tree: HistoryTree<S>,
+    requested: ReadonlyMap<NodeId, NodeId | undefined>,
+  ): void {
     for (const node of tree.all()) {
       const choice = requested.get(node.id);
       if (choice !== undefined && !node.children.includes(choice)) {
@@ -524,18 +555,6 @@ export class TimelineEngine<S extends object> {
       }
       node.lastVisitedChild = choice ?? node.children.at(-1);
     }
-    if (currentState === undefined) {
-      throw new SnapshotError(`The current entry ${snapshot.currentId} does not exist`);
-    }
-    this.tree = tree;
-    this.currentNodeId = snapshot.currentId;
-    this.currentState = currentState;
-    this.openNodeId = undefined;
-    this.settledQueue.length = 0;
-    this.transactionStarts.length = 0;
-    this.gestureKeys.length = 0;
-    this.prune();
-    this.changed();
   }
 
   private holdForChildren(

@@ -116,12 +116,6 @@ function assignColumns(order: readonly Working[]): void {
   }
 }
 
-/**
- * Places the nodes of a history tree on a grid. A node sits one row below its parent. The
- * nodes of `activePath` come first among their siblings, so the active branch stays in the
- * first column of its subtree and the layout never crosses it. Nodes are returned in
- * depth-first order with the active child first, which is the order the keyboard follows.
- */
 export function layoutTree(
   entries: readonly LayoutEntry[],
   activePath: readonly number[],

@@ -29,11 +29,6 @@ function followLastChild(byId: EntriesById, startId: number): number {
   }
 }
 
-/**
- * Picks the last entry of the branch the scrubber shows. While the current entry stays on the
- * branch shown before, that branch is kept, so scrubbing backwards does not swap the track under
- * the thumb. Otherwise the branch continues from the current entry along the newest children.
- */
 export function resolveTip(
   byId: EntriesById,
   currentId: number,

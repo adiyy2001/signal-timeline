@@ -116,10 +116,6 @@ function applyOperation(root: unknown, operation: Operation, session: Session): 
   return newRoot;
 }
 
-/**
- * Applies a patch without changing the input. Containers on a changed path are copied once per call,
- * everything else keeps its identity. If any operation fails, a `PatchError` is thrown and nothing is returned.
- */
 export function applyPatch<T = unknown>(state: T, patch: Patch): T {
   const session = new Session();
   let current: unknown = state;

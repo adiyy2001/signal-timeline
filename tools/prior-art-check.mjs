@@ -9,7 +9,10 @@ const packageSpec = process.argv[2] ?? '@ngrx-toolkit/core@22.0.1';
 
 function fetchToolkit() {
   const work = mkdtempSync(join(tmpdir(), 'signal-timeline-prior-art-'));
-  const packed = spawnSync('npm', ['pack', packageSpec, '--silent'], { cwd: work, encoding: 'utf8' });
+  const packed = spawnSync('npm', ['pack', packageSpec, '--silent'], {
+    cwd: work,
+    encoding: 'utf8',
+  });
   if (packed.status !== 0) {
     console.error(packed.stderr);
     process.exit(2);
@@ -29,7 +32,11 @@ async function installDomGlobals() {
   const { JSDOM } = await import('jsdom');
   const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/' });
   for (const key of ['window', 'document', 'Node', 'HTMLElement', 'Element', 'Event']) {
-    Object.defineProperty(globalThis, key, { value: dom.window[key], configurable: true, writable: true });
+    Object.defineProperty(globalThis, key, {
+      value: dom.window[key],
+      configurable: true,
+      writable: true,
+    });
   }
 }
 
@@ -61,7 +68,9 @@ async function main() {
     undos++;
   }
   console.log(`package ${packageSpec}`);
-  console.log(`maxStackSize ${maxStackSize}, ${edits} edits, then undo until canUndo is false: ${undos} undos`);
+  console.log(
+    `maxStackSize ${maxStackSize}, ${edits} edits, then undo until canUndo is false: ${undos} undos`,
+  );
   console.log(`the limit is ${undos <= maxStackSize ? 'respected' : 'not applied'}`);
 
   store.set(100);

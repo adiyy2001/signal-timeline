@@ -3,10 +3,6 @@ import type { TimelineEntry } from 'signal-timeline';
 
 const pageStep = 10;
 
-/**
- * What the user asked the scrubber to do. The owner resolves it against the live history, so a
- * key pressed before the view has caught up with the previous one still moves one more step.
- */
 export type ScrubberMove =
   | { readonly kind: 'by'; readonly steps: number }
   | { readonly kind: 'index'; readonly index: number }
@@ -34,9 +30,6 @@ function moveForKey(key: string): ScrubberMove | undefined {
   }
 }
 
-/**
- * The index a move leads to, kept inside the track.
- */
 export function resolveMove(move: ScrubberMove, index: number, lastIndex: number): number {
   const requested =
     move.kind === 'by'

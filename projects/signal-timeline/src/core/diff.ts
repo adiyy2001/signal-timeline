@@ -174,19 +174,12 @@ function diffArrays(
   }
 }
 
-/**
- * Computes the forward and the inverse patch between two states in one pass.
- * Subtrees that are the same reference in both states are skipped without being read.
- */
 export function diffPair(before: unknown, after: unknown): PatchPair {
   const out = new PairBuilder();
   diffValues(before, after, '', out);
   return out.finish();
 }
 
-/**
- * Computes the patch that turns `before` into `after`.
- */
 export function diff(before: unknown, after: unknown): Patch {
   return diffPair(before, after).forward;
 }

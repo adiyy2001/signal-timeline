@@ -2,13 +2,14 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+import { resolveChrome } from './chrome.mjs';
 import { serveDemo } from './serve-demo.mjs';
 
 const root = join(fileURLToPath(import.meta.url), '..', '..');
 const outputDirectory = join(root, '.screenshots');
 mkdirSync(outputDirectory, { recursive: true });
 
-const chrome = process.env.CHROME_PATH ?? '/usr/bin/google-chrome';
+const chrome = await resolveChrome();
 const { url, close } = await serveDemo();
 const browser = await chromium.launch({ executablePath: chrome, headless: true });
 

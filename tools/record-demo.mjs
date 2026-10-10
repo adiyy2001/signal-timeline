@@ -3,6 +3,7 @@ import { mkdirSync, readdirSync, renameSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+import { resolveChrome } from './chrome.mjs';
 import { serveDemo } from './serve-demo.mjs';
 
 const root = join(fileURLToPath(import.meta.url), '..', '..');
@@ -11,7 +12,7 @@ const outputDirectory = join(root, 'docs', 'media');
 const gifPath = join(outputDirectory, 'demo.gif');
 const maxBytes = 8 * 1024 * 1024;
 const viewport = { width: 1280, height: 720 };
-const chrome = process.env.CHROME_PATH ?? '/usr/bin/google-chrome';
+const chrome = await resolveChrome();
 
 const cursorScript = `
   window.addEventListener('DOMContentLoaded', () => {
@@ -96,7 +97,20 @@ function convertToGif(videoPath, startSeconds) {
     'fps=12,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle';
   const result = spawnSync(
     'ffmpeg',
-    ['-y', '-loglevel', 'error', '-ss', String(startSeconds), '-i', videoPath, '-vf', filter, '-loop', '0', gifPath],
+    [
+      '-y',
+      '-loglevel',
+      'error',
+      '-ss',
+      String(startSeconds),
+      '-i',
+      videoPath,
+      '-vf',
+      filter,
+      '-loop',
+      '0',
+      gifPath,
+    ],
     { encoding: 'utf8' },
   );
   if (result.status !== 0) {

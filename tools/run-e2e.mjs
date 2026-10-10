@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveChrome } from './chrome.mjs';
 import { serveDemo } from './serve-demo.mjs';
 
 const root = join(fileURLToPath(import.meta.url), '..', '..');
@@ -14,6 +15,23 @@ function run(command, commandArgs) {
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
+}
+
+function hasDisplayServer() {
+  if (process.platform !== 'linux' || process.env.DISPLAY !== undefined) {
+    return true;
+  }
+  return spawnSync('which', ['Xvfb'], { stdio: 'ignore' }).status === 0;
+}
+
+if (browser === 'chrome') {
+  await resolveChrome();
+}
+if (!hasDisplayServer()) {
+  console.error(
+    'Cypress needs a display on Linux. Install Xvfb (apt install xvfb) or set DISPLAY.',
+  );
+  process.exit(2);
 }
 
 if (!skipBuild) {

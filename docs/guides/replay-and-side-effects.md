@@ -44,7 +44,7 @@ const saveDocument = rxMethod<Document>(
 
 ## What is tested
 
-The replay suite runs an `effect`, an `rxMethod`, a `signalMethod` and a `watchState` callback across an undo, a redo and a `jumpTo`, then across a live change, which must fire again. It runs in a zoneless TestBed and again with zone.js, on Angular 22 and on Angular 21. A negative control (the helpers replaced by pass-through code) makes the checks fail, so they are not vacuous. ADR 0007 has the design and the fallback I kept in reserve.
+The replay suite runs an `effect`, an `rxMethod`, a `signalMethod` and a `watchState` callback across an undo, a redo and a `jumpTo`, then across a live change, which must fire again. It runs in a zoneless TestBed and again with zone.js, on Angular 22 and on Angular 21. `pnpm negative-controls` applies three deliberate breaks to the helpers (and puts them back) (a `skipReplay` that always runs, an `ignoreReplays` that lets everything through, a replay window that never opens), reruns the replay specs and fails unless each break makes tests fail, so the checks are not vacuous. ADR 0007 has the design and the fallback I kept in reserve.
 
 ## Limits
 

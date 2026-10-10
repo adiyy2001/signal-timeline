@@ -41,7 +41,7 @@ None of these is part of the published package. Versions are the ones pinned in 
 | `eslint` 10.12.0, `@eslint/js`, `typescript-eslint` 8.71.0, `angular-eslint` 22.5.0, `globals`, `prettier` 3.9.9 | lint and formatting | MIT |
 | `@types/node` 24.19.1 | Node typings | MIT |
 
-The `axe-core` exception is explained in [ADR 0013](docs/adr/0013-dependency-license-policy.md). It is used unmodified and only as a development tool. Two more development only packages that Angular's own build tool pulls in are not permissive in the narrow sense: `lightningcss` 1.33.0 (MPL-2.0) and `caniuse-lite` 1.0.30001814 (CC-BY-4.0, browser data). They are not copied into the repository or the package. `pnpm licenses` scans every installed package and fails on any license outside the allowed list and these named exceptions.
+The `axe-core` exception is explained in [ADR 0013](docs/adr/0013-dependency-license-policy.md). It is used unmodified and only as a development tool. Two more development only packages that Angular's own build tool pulls in are not permissive in the narrow sense: `lightningcss` 1.33.0 (MPL-2.0) and `caniuse-lite` 1.0.30001814 (CC-BY-4.0, browser data). They are not copied into the repository or the package. `pnpm check:licenses` scans every installed package and fails on any license outside the allowed list and these named exceptions.
 
 Outside the repository, the demo GIF was encoded with ffmpeg and recorded in Google Chrome. Neither is distributed here.
 

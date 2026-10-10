@@ -4,7 +4,7 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-The brief asks for the latest stable versions of everything and for a CI matrix on the current and the previous major of Angular and `@ngrx/signals`.
+The project uses the latest stable versions of its tools, and the CI matrix has to cover the current and the previous major of Angular and `@ngrx/signals`.
 
 Checked on 2026-10-04 on the npm registry and on angular.dev:
 
@@ -24,11 +24,11 @@ That last point matters. A package built with the Angular 22 compiler is not gua
 
 ## Alternatives
 
-- Build and publish with 22 and declare `^22` only. Simplest, but it drops the previous major, which the brief wants in the matrix.
+- Build and publish with 22 and declare `^22` only. Simplest, but it drops the previous major, which the matrix needs.
 - Publish one major per Angular major, like `@ngrx-toolkit/core` does. Doubles the release work for a project of this size.
 
 ## Consequences
 
 - The source has to compile with TypeScript 5.9 and 6.0.
 - If the 21-built partial output fails in the Angular 22 consumer, or a feature turns out to exist only in 22, the fallback is to narrow the peers to `^22` and say so in the README.
-- A release needs the previous line installed once on the machine that publishes. The release workflow does it; Adrian does not have to.
+- A release needs the previous line installed once on the machine that publishes. The release workflow does it.

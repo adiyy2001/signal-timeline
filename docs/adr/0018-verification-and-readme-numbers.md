@@ -11,7 +11,7 @@ The README quotes numbers, the badges have to be honest before anything is pushe
 - Every number in the README comes from a script in the repository. Benchmark figures are copied from `bench/results/summary.md`, which `pnpm bench:report` generates from the JSON files of `pnpm bench`. Test counts and coverage come from `pnpm test:coverage`. The two Lighthouse and must-have claims come from `tools/lighthouse.mjs` and `tools/verify-must-haves.mjs`. The prior art claim comes from `tools/prior-art-check.mjs` (ADR 0016).
 - The benchmarks were run again at the end, on the final code, instead of reusing the figures from the tuning phase. ADR 0014 says which figures it quotes from the earlier run.
 - The coverage badge is an SVG that `tools/coverage-badge.mjs` writes to `docs/media/coverage.svg` from the coverage summaries of both projects. A badge service would need an account and a first push. The file is regenerated with `pnpm coverage:badge` after `pnpm test:coverage`, and it shows the line coverage over both projects.
-- The CI and npm badges point at the planned repository and package. They stay empty until Adrian pushes and publishes, and the README says so.
+- The CI and npm badges point at the repository and the package on npm.
 - The demo GIF is produced by `pnpm demo:gif` (ADR 0017) and committed, because GitHub renders the README from the repository and cannot run a script.
 - A fresh clone is checked in a Docker container with the commands from the README: clone, `pnpm install`, `pnpm start`, then a request to the dev server. The container name starts with `signal-timeline-`.
 

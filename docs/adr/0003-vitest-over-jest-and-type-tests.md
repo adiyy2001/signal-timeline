@@ -4,9 +4,9 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-The brief says to use Jest unless the Angular CLI default is clearly the better fit. The Angular testing guide describes Vitest as the default runner (builder `@angular/build:unit-test`, `ng test`), keeps Karma for existing projects and does not mention Jest. The builder schema in `@angular/build` 22.2.1 accepts `runner: vitest | karma` and has `coverage`, `coverageThresholds`, `coverageInclude` and `coverageReporters`. The scaffold uses Vitest `^5.0.0` on Angular 22 and `^4.0.8` on Angular 21.
+Jest is the usual choice for Angular unit tests, unless the Angular CLI default is clearly the better fit. The Angular testing guide describes Vitest as the default runner (builder `@angular/build:unit-test`, `ng test`), keeps Karma for existing projects and does not mention Jest. The builder schema in `@angular/build` 22.2.1 accepts `runner: vitest | karma` and has `coverage`, `coverageThresholds`, `coverageInclude` and `coverageReporters`. The scaffold uses Vitest `^5.0.0` on Angular 22 and `^4.0.8` on Angular 21.
 
-The brief also allows `expect-type` or `tsd` for type tests. Negative assertions such as "an unknown key is rejected" usually need `// @ts-expect-error`, and the repo rule is no comments in code.
+Type tests can use `expect-type` or `tsd`. Negative assertions such as "an unknown key is rejected" usually need `// @ts-expect-error`, and the repo rule is no comments in code.
 
 ## Decision
 

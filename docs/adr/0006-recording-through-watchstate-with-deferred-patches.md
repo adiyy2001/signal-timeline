@@ -6,7 +6,7 @@ Status: accepted, 2026-10-04
 
 `patchState` is a free function, so a store feature cannot wrap it. `watchState(store, watcher)` is public, runs synchronously after every `patchState` (once per call, however many updaters it got) and also once at registration. I read `@ngrx/signals` 21.1.1 and 22.0.1: the state-source code is the same in both apart from a small refactor.
 
-The brief wants recording overhead under 0.1 ms per typical `patchState` on a state with 10,000 entities. A throwaway script (Node 24.21.0, x64, WSL2, not for the README) shows why a naive eager diff cannot meet that:
+The target is a recording overhead under 0.1 ms per typical `patchState` on a state with 10,000 entities. A throwaway script (Node 24.21.0, x64, WSL2, not for the README) shows why a naive eager diff cannot meet that:
 
 - The store's own `updateEntity` copies the whole `entityMap` and `ids`: 3.9 ms with string ids such as `shape-123`, 11 microseconds with integer-like ids (V8 stores those as array elements).
 - Finding the changed entity by comparing the two maps costs 1.1 to 1.5 ms with string ids and 0.16 to 0.5 ms with integer-like ids, in the best loop I tried. A diff of the root keys alone costs 0.3 microseconds.
@@ -32,15 +32,15 @@ So any diff that scans a 10,000 key map is above the target by an order of magni
 - The hot path is cheap. The total CPU cost still exists; it moves to a microtask. The benchmark shows whether it fits the frame budget on large states, and the README says so plainly.
 - The engine needs a "pending" node state with its own tests: undo before materialization, materialization after coalescing, and persistence of pending entries.
 
-## Measured in milestone M3 (probe, not the final suite)
+## Early probe (not the final suite)
 
 `bench/probe.ts`, run with `pnpm bench:probe` (production flags, Node 24.21.0, Intel Core i7-12700H, 20 cores, WSL2, state of 10,000 entities with string ids). Overhead is the mean of the timeline task minus the mean of the same update on a store without the feature.
 
 - Update of one small slice: 2 to 5 microseconds for the synchronous part, 3 to 5 microseconds including the patches.
 - Update of one entity in the 10,000 entity map: the update itself takes 2.7 to 3.8 ms. The synchronous overhead was 0.12 to 0.37 ms across three runs, so the 0.1 ms target is missed on this path and the noise is as large as the effect. Including the patches the overhead was 3.0 to 4.7 ms, almost all of it the diff of the two entity maps.
-- The code on the hot path is O(root keys), and the small slice number shows it. The extra cost on the entity map is most likely garbage collection pressure from keeping the before and after maps alive until the patch exists, which M5 has to confirm with heap measurements.
+- The code on the hot path is O(root keys), and the small slice number shows it. The extra cost on the entity map is most likely garbage collection pressure from keeping the before and after maps alive until the patch exists, which the heap measurements had to confirm.
 
-Superseded in M5: `bench:probe` is removed and the numbers come from `pnpm bench` with interleaved pairs, see ADR 0014. The suspicion above was wrong in one respect: the synchronous overhead on the entity path is 0.012 ms median in Node, and the earlier 0.12 to 0.37 ms was subtraction noise between two separate runs.
+Superseded: the probe script is removed and the numbers come from `pnpm bench` with interleaved pairs, see ADR 0014. The suspicion above was wrong in one respect: the synchronous overhead on the entity path is 0.012 ms median in Node, and the earlier 0.12 to 0.37 ms was subtraction noise between two separate runs.
 
 ## Development check
 

@@ -4,7 +4,7 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-History has to survive a reload. The brief asks for an adapter interface and a `sessionStorage` adapter. `sessionStorage` holds about 5 MB per origin and per tab, throws when full, and is unavailable in some privacy modes.
+History has to survive a reload. The library needs an adapter interface and a `sessionStorage` adapter. `sessionStorage` holds about 5 MB per origin and per tab, throws when full, and is unavailable in some privacy modes.
 
 ## Decision
 
@@ -27,13 +27,13 @@ History has to survive a reload. The brief asks for an adapter interface and a `
 - State has to be JSON-safe to persist. The docs and a runtime check in development mode say so.
 - A history that was saved by a different store shape is dropped rather than applied to the wrong state.
 
-## Decisions made in milestone M4
+## Decisions made while building persistence
 
 - The payload lists the keys it was saved for, and the root state must have exactly those keys. A payload for other keys (a tracked key was added or removed) is rejected like a corrupt one: ignored, removed, reported through `onError`.
 - The format check validates structure, and the engine then replays every forward patch while it loads, so a patch that does not apply rejects the whole payload. It does not check that an inverse patch really inverts its forward patch. That would mean comparing a full state per entry on load. A payload edited by hand can therefore make an undo land on a wrong state. The storage is the app's own, so this is stated in the docs and not defended against.
 - `changedKeys` is saved per entry. It is cheap to compute while recording (by reference, per root key) and the patch cannot give it back exactly: a change to an equal value has an empty patch but still names its key.
 - `migrate` is called only when the stored format number differs from the current one. Its result must declare the current format and passes the same validation.
-- Saving serializes the whole history each time, so the cost grows with the history, not with the last change. The debounce keeps that off the hot path. An incremental append format would fix it and is left out; the limit goes into the README. Measured in M5 (ADR 0014): saving 10,000 entries takes 8 ms and produces 2.7 million characters, loading takes 41 ms in Node. Load builds the state only at checkpoints, the current entry, branch points and leaves, so it replays each patch once.
+- Saving serializes the whole history each time, so the cost grows with the history, not with the last change. The debounce keeps that off the hot path. An incremental append format would fix it and is left out; the limit goes into the README. Measured in ADR 0014: saving 10,000 entries takes 8 ms and produces 2.7 million characters, loading takes 41 ms in Node. Load builds the state only at checkpoints, the current entry, branch points and leaves, so it replays each patch once.
 - Loading from an asynchronous adapter applies the result only if nothing was recorded in the meantime, and nothing is saved before the load finished, so a slow load cannot overwrite the history it is about to read. A user change that wins the race drops the stored history.
 - A value that JSON cannot carry is lost: `undefined` object values and `undefined` operation values. An operation without a value makes the payload invalid. Dates, Maps and class instances are not supported in persisted state, which the development check already warns about.
 - Rehydration is a replay (ADR 0007): `isReplaying` is true until the next render, so effects guarded with `skipReplay` do not fire for the restore.

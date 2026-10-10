@@ -4,9 +4,9 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-The brief allows only permissive dependencies (MIT, Apache 2.0, BSD, ISC). Checked on the npm registry on 2026-10-04: Angular, NgRx, ng-packagr, Vitest, fast-check, tinybench, Cypress, `rfc6902`, `cypress-axe`, `sirv-cli`, `publint`, `@arethetypeswrong/cli` and Changesets are MIT. TypeScript, RxJS, Playwright, TypeDoc, Lighthouse and `expect-type` are Apache 2.0. `axe-core` 4.13.0 is MPL-2.0, which is a file-level copyleft license.
+The project allows only permissive dependencies (MIT, Apache 2.0, BSD, ISC). Checked on the npm registry on 2026-10-04: Angular, NgRx, ng-packagr, Vitest, fast-check, tinybench, Cypress, `rfc6902`, `cypress-axe`, `sirv-cli`, `publint`, `@arethetypeswrong/cli` and Changesets are MIT. TypeScript, RxJS, Playwright, TypeDoc, Lighthouse and `expect-type` are Apache 2.0. `axe-core` 4.13.0 is MPL-2.0, which is a file-level copyleft license.
 
-The brief also requires a Lighthouse accessibility score of 95 or more. Lighthouse depends on `axe-core`, so it is already in the dependency tree of any repo that follows the brief.
+The project also requires a Lighthouse accessibility score of 95 or more. Lighthouse depends on `axe-core`, so it is already in the dependency tree of any repo that runs that check.
 
 ## Decision
 
@@ -18,10 +18,10 @@ The brief also requires a Lighthouse accessibility score of 95 or more. Lighthou
 
 ## Alternatives
 
-- Drop `axe-core` and the Lighthouse check: loses the automated accessibility evidence the brief asks for.
+- Drop `axe-core` and the Lighthouse check: loses the automated accessibility evidence.
 - Vendor nothing and test accessibility by hand only: not repeatable.
 
 ## Consequences
 
 - The README says in one line that the accessibility checks use `axe-core` under MPL-2.0 as a development tool.
-- Adrian can veto the `axe-core` exception; removing `cypress-axe` leaves Lighthouse as the only accessibility check. The other exceptions come with Angular's own build tool, so they cannot be removed without dropping Angular.
+- The `axe-core` exception can go; removing `cypress-axe` leaves Lighthouse as the only accessibility check. The other exceptions come with Angular's own build tool, so they cannot be removed without dropping Angular.

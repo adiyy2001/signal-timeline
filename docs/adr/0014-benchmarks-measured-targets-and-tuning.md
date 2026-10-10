@@ -4,7 +4,7 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-The brief sets two numeric targets: recording overhead under 0.1 ms per typical `patchState` on a state with 10,000 entities, and a history after 10,000 small edits at least 10 times smaller than full snapshots, measured as serialized size and as heap with `--expose-gc`. Milestone M3 only had a probe. M5 builds the real suites and tunes what they show.
+The project sets two numeric targets: recording overhead under 0.1 ms per typical `patchState` on a state with 10,000 entities, and a history after 10,000 small edits at least 10 times smaller than full snapshots, measured as serialized size and as heap with `--expose-gc`. An early probe only gave rough numbers. The real suites came next, and the tuning followed what they showed.
 
 ## Method
 
@@ -19,7 +19,7 @@ The tables below are from the first full run, when the tuning decisions were mad
 
 Recording, 10,000 entities with string ids, Node, `updateEntity`:
 
-| | before M5 | after M5 |
+| | before tuning | after tuning |
 | --- | --- | --- |
 | synchronous overhead on the `patchState` call (median) | 0.025 ms (subtraction method) | 0.012 ms (paired) |
 | mean, p90 | not measured | -0.010 ms, 0.224 ms |

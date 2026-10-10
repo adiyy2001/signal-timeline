@@ -4,7 +4,7 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-The README needs a demo GIF of the vector editor, recorded with Playwright and converted with ffmpeg, under 8 MB. The story is fixed by the brief: draw a few shapes, undo, make a different change to create a branch, open the tree, jump between branches, scrub the timeline.
+The README needs a demo GIF of the vector editor, recorded with Playwright and converted with ffmpeg, under 8 MB. The story: draw a few shapes, undo, make a different change to create a branch, open the tree, jump between branches, scrub the timeline.
 
 ## Decision
 

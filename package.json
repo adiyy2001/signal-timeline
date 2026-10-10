@@ -9,7 +9,7 @@
   "scripts": {
     "ng": "ng",
     "start": "pnpm build && ng serve demo",
-    "lint": "eslint . && node tools/check-style.mjs",
+    "lint": "eslint . && prettier --check . && node tools/check-style.mjs",
     "typecheck": "node tools/typecheck.mjs",
     "test": "ng test signal-timeline --no-watch && ng test demo --no-watch",
     "test:coverage": "ng test signal-timeline --no-watch --coverage && ng test demo --no-watch --coverage && node tools/check-coverage.mjs",
@@ -32,13 +32,14 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "node tools/compat.mjs 21 --release && changeset publish",
-    "licenses": "node tools/check-licenses.mjs",
+    "check:licenses": "node tools/check-licenses.mjs",
     "compat": "node tools/compat.mjs",
     "consumer": "node tools/consumer-smoke.mjs",
     "verify:must-haves": "node tools/verify-must-haves.mjs",
     "demo:gif": "node tools/record-demo.mjs",
     "coverage:badge": "node tools/coverage-badge.mjs",
-    "prior-art": "node tools/prior-art-check.mjs"
+    "prior-art": "node tools/prior-art-check.mjs",
+    "negative-controls": "node tools/negative-controls.mjs"
   },
   "devDependencies": {
     "@angular/build": "22.2.1",

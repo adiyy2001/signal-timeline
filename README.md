@@ -4,14 +4,12 @@ Undo, redo, transactions, a branching undo tree, history shared across stores an
 
 ![Drawing shapes in the demo editor, undoing, branching, jumping between branches and scrubbing the timeline](docs/media/demo.gif)
 
-Live demo: https://adrianturbinski.github.io/signal-timeline/ (a placeholder until the repository is pushed and Pages is switched on). The API reference is at `/api/` on the same site.
+Live demo: https://signal-timeline.adrianturbinski.pl/ (API reference at [/api/](https://signal-timeline.adrianturbinski.pl/api/)).
 
-[![CI](https://github.com/adrianturbinski/signal-timeline/actions/workflows/ci.yml/badge.svg)](https://github.com/adrianturbinski/signal-timeline/actions/workflows/ci.yml)
+[![CI](https://github.com/adiyy2001/signal-timeline/actions/workflows/ci.yml/badge.svg)](https://github.com/adiyy2001/signal-timeline/actions/workflows/ci.yml)
 ![coverage](docs/media/coverage.svg)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/signal-timeline.svg)](https://www.npmjs.com/package/signal-timeline)
-
-The package is not on npm yet and nothing has run on GitHub, so the CI and npm badges stay empty until the first push and the first release.
 
 ## Why I built this
 
@@ -19,9 +17,13 @@ I work with signals based Angular every day, and the diagram editors I build at 
 
 So this library starts where linear undo stops: a branching tree, transactions, history across several stores, and time travel that leaves side effects alone. Everything is written from scratch, and the demo is a small SVG editor made for this project.
 
-<!-- ADRIAN: add one or two sentences of your own here, for example the bug in a real editor that made you want this, or what you would tell a colleague who asks why undo is harder than it looks. -->
-
 ## What it looks like in code
+
+```sh
+npm install signal-timeline
+```
+
+The peer dependencies are Angular 21 or 22, @ngrx/signals 21 or 22 and RxJS 7.
 
 ```ts
 import { signalStore, withState } from '@ngrx/signals';
@@ -52,7 +54,7 @@ The panel comes from `signal-timeline/devtools`. It needs `moduleResolution` set
 
 ### Effects must stay quiet during undo
 
-An `effect` that saves the document runs after `patchState`, in the next change detection pass. A boolean that is true only while the timeline writes the state is already false by then. The timeline keeps a replay window that closes after the next render, and `skipReplay` and `ignoreReplays` read it for `effect`, `signalMethod` and `rxMethod`. The tests run all four kinds of listener across undo, redo, jump and a live change, with zoneless and zone based change detection, and a deliberately broken helper makes them fail. Details are in [replay and side effects](docs/guides/replay-and-side-effects.md) and ADR 0007.
+An `effect` that saves the document runs after `patchState`, in the next change detection pass. A boolean that is true only while the timeline writes the state is already false by then. The timeline keeps a replay window that closes after the next render, and `skipReplay` and `ignoreReplays` read it for `effect`, `signalMethod` and `rxMethod`. The tests run all four kinds of listener across undo, redo, jump and a live change, with zoneless and zone based change detection, and `pnpm negative-controls` breaks the helpers on purpose to show that they fail. Details are in [replay and side effects](docs/guides/replay-and-side-effects.md) and ADR 0007.
 
 ### Recording has to stay cheap on large state
 
@@ -96,7 +98,7 @@ More in [patches, the tree and checkpoints](docs/guides/patches-and-the-tree.md)
 
 ## Validation and benchmarks
 
-Every number in this section comes from `bench/results/summary.md`, which `pnpm bench:report` generates from the JSON files that `pnpm bench` writes. The benchmarks use tinybench and print the hardware and engine they ran on. They ran on 2026-10-04 on a laptop shared with other jobs, so small differences are noise.
+Every number in this section comes from `bench/results/summary.md`, which `pnpm bench:report` generates from the JSON files that `pnpm bench` writes. The benchmarks use tinybench and print the hardware and engine they ran on. The Node memory suite keeps 2.6 GB of snapshots alive at 10,000 entities and needs about 3.5 GB of heap, which `bench/run.mjs` requests for its child process, so the machine needs that much free memory. They ran on 2026-10-04 on a laptop shared with other jobs, so small differences are noise.
 
 Hardware: 12th Gen Intel Core i7-12700H, 20 logical cores, 15 GB RAM, Linux 6.6 on WSL2. Engines: Node 24.21.0 and Chromium 153.0.8010.12 (headless, through Playwright).
 
@@ -104,14 +106,15 @@ Hardware: 12th Gen Intel Core i7-12700H, 20 logical cores, 15 GB RAM, Linux 6.6 
 
 The target is under 0.1 ms per typical `patchState`. The figures are the median of paired differences between a plain store and a store with the feature, in Node:
 
-| operation | extra time on the `patchState` call | patches computed afterwards |
-| --- | --- | --- |
-| `updateEntity` (string ids) | 0.005 ms | 1.185 ms in total |
-| `addEntity` | 0.012 ms | 1.183 ms in total |
-| `removeEntity` | 0.027 ms | 1.364 ms in total |
-| `updateEntity` with the history full at 100 entries | 0.028 ms | 1.170 ms in total |
+| operation | extra time on the `patchState` call (median) | p90 of the pairs | patches computed afterwards |
+| --- | --- | --- | --- |
+| `updateEntity` (string ids) | 0.005 ms | 0.259 ms | 1.185 ms in total |
+| `addEntity` | 0.012 ms | 0.214 ms | 1.183 ms in total |
+| `removeEntity` | 0.027 ms | 0.238 ms | 1.364 ms in total |
+| `updateEntity` with the history full at 100 entries | 0.028 ms | 0.289 ms | 1.170 ms in total |
+| transaction of ten updates | 1.210 ms | 5.822 ms | 1.214 ms in total |
 
-The target holds for the call itself. It does not hold for the work after it. Computing the patch of one entity update in a 10,000 entity map takes about 1.2 ms in Node (7.9 ms at 50,000 entities), because a diff has to look at every key. That work runs in a microtask and is not hidden. Chromium's timer resolution is 0.1 ms in this setup, so the same median reads 0.000 there and the Node figure is the precise one.
+The target holds for the call itself at the median. About one call in ten costs 0.2 to 0.3 ms more, and a transaction of ten updates adds 1.2 ms to the synchronous part, because it applies all ten writes. The target does not hold for the work after the call. Computing the patch of one entity update in a 10,000 entity map takes about 1.2 ms in Node (7.9 ms at 50,000 entities), because a diff has to look at every key. That work runs in a microtask and is not hidden. Chromium's timer resolution is 0.1 ms in this setup, so the same median reads 0.000 there and the Node figure is the precise one.
 
 ### History size after 10,000 small edits
 
@@ -139,14 +142,14 @@ On 10,000 entities with 3,000 entries a jump takes about 3 to 4 ms, mostly the c
 
 ### Other checks
 
-`pnpm verify:must-haves` runs 31 checks against the packed tarball and the production demo (jsdom with real Angular DI for the library, Chrome for the demo). `node tools/lighthouse.mjs` audits the production build of the demo and fails below an accessibility score of 95. Lighthouse only sees the empty editor, so the Cypress suite runs axe in five states as well.
+`pnpm verify:must-haves` runs 32 checks against the packed tarball and the production demo (jsdom with real Angular DI for the library, Chrome for the demo). `node tools/lighthouse.mjs` audits the production build of the demo and fails below an accessibility score of 95. Lighthouse only sees the empty editor, so the Cypress suite runs axe in five states as well.
 
 ## Run it locally
 
-You need Node 24.15 or newer and pnpm 12 (`corepack enable` provides the pinned version).
+You need Node 24.15 or a later 24.x and pnpm 12 (`corepack enable` provides the pinned version).
 
 ```sh
-git clone https://github.com/adrianturbinski/signal-timeline && cd signal-timeline
+git clone https://github.com/adiyy2001/signal-timeline && cd signal-timeline
 pnpm install
 pnpm start
 ```
@@ -161,14 +164,17 @@ pnpm start
 | `pnpm test:coverage` | the same with coverage and a gate: 90 percent of lines in `src/core`, 80 percent elsewhere |
 | `pnpm test:types` | type tests with expect-type, including option keys restricted to state keys |
 | `pnpm test:e2e` | 25 Cypress tests against the production build: draw, undo, redo, branch, scrub, tree keys, reload, keyboard only drawing, axe, no horizontal scroll at 360, 390 and 768 px |
+| `pnpm negative-controls` | breaks the replay helpers three ways and fails unless the replay specs catch each one |
 | `pnpm bench:smoke` | a short run of every benchmark suite |
 | `pnpm compat 21` | unit tests, type tests and the library build with Angular 21 and @ngrx/signals 21 |
 | `pnpm consumer 21`, `pnpm consumer 22` | a fresh Angular app of that major installs the packed tarball, builds for production and runs 3 tests |
 | `pnpm verify` | everything the CI job runs, in order |
 
-The property tests (fast-check) cover the five properties from the brief: undo then redo is the identity, a patch followed by its inverse is the identity, `jumpTo` equals replaying from the start, a transaction with a net change is exactly one entry, and the tree invariants hold. They also run model based sequences with pruning, persistence and groups. The default is 200 runs per property, and `FC_NUM_RUNS` raises it. Line coverage on the last run was 98.4 percent for the library and 97.0 percent for the demo.
+Some commands need more than `pnpm install`. `pnpm test:e2e` needs Google Chrome and Xvfb (or a display), and `pnpm lighthouse` and `pnpm demo:gif` need Google Chrome (`CHROME_PATH` points at another binary). `pnpm bench:smoke` and the Chromium half of `pnpm bench` need `pnpm exec playwright install chromium`. `pnpm verify:must-haves` needs a packed tarball and the demo build first: `pnpm pack:lib && pnpm build:demo`.
 
-The CI matrix runs the unit tests and the library build on Angular 21 with @ngrx/signals 21 and on Angular 22 with @ngrx/signals 22. I could not run the workflows as a whole (`act` is not installed here and nothing was pushed), so every command in them was run locally and the files were linted with actionlint.
+The property tests (fast-check) cover five properties: undo then redo is the identity, a patch followed by its inverse is the identity, `jumpTo` equals replaying from the start, a transaction with a net change is exactly one entry, and the tree invariants hold. They also run model based sequences with pruning, persistence and groups. The default is 200 runs per property, and `FC_NUM_RUNS` raises it. Line coverage on the last run was 98.4 percent for the library and 97.0 percent for the demo.
+
+The CI matrix runs the unit tests and the library build on Angular 21 with @ngrx/signals 21 and on Angular 22 with @ngrx/signals 22. Every command in the workflows was run locally and the files pass actionlint; the CI badge above shows the hosted result.
 
 ## Design decisions
 
@@ -218,4 +224,4 @@ Next I would test the tree with a screen reader, make `entries()` incremental an
 
 ## Credits and license
 
-Third party packages and the prior art I read are listed in [CREDITS.md](CREDITS.md). The code, the favicon and the demo shapes are original work. MIT, see [LICENSE](LICENSE).
+Third party packages and the prior art I read are listed in [CREDITS.md](CREDITS.md). The code, the favicon and the demo shapes are original work. The accessibility checks use axe-core, which is MPL-2.0, as an unmodified development tool; it is not part of the published package, whose only runtime dependency is tslib. MIT, see [LICENSE](LICENSE).

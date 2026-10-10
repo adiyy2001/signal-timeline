@@ -4,7 +4,7 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-The brief says to check what other libraries offer before writing anything and to credit prior art accurately. Linear undo for SignalStore already exists, so the README must say what this project adds and must not claim more than I verified.
+What other libraries offer had to be checked before writing anything, and the prior art has to be credited accurately. Linear undo for SignalStore already exists, so the README must say what this project adds and must not claim more than I verified.
 
 ## What I checked
 
@@ -22,7 +22,7 @@ Reading the compiled source of `withUndoRedo` 22.0.1, the stack limit looked ine
 ## Decision
 
 - The README has a short comparison with the three closest projects, limited to facts above, and names the version each fact comes from.
-- The positioning is what the brief says: the project picks up where linear undo stops. A branching tree, transactions, history across several stores and time travel that does not re-fire side effects. It does not claim to be faster or smaller than any of them, because I did not benchmark them.
+- The positioning: the project picks up where linear undo stops. A branching tree, transactions, history across several stores and time travel that does not re-fire side effects. It does not claim to be faster or smaller than any of them, because I did not benchmark them.
 - Nothing is copied from any of these projects. CREDITS.md lists them under prior art.
 
 ## Alternatives
@@ -33,4 +33,4 @@ Reading the compiled source of `withUndoRedo` 22.0.1, the stack limit looked ine
 ## Consequences
 
 - The comparison ages. The versions are in the text, and the script is there to repeat the one check that is not a matter of reading.
-- The finding about `maxStackSize` is worth reporting upstream. That is a GitHub write, so it is on Adrian's list in `PLAN.md`.
+- I have not reported the finding about `maxStackSize` upstream yet. `pnpm prior-art` reproduces it.

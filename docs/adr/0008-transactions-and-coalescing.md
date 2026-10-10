@@ -4,7 +4,7 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-`transaction(label, fn)` must turn several `patchState` calls into one entry. Coalescing must merge changes within N milliseconds or by a key, for example one entry per drag. The brief says a transaction "always creates exactly one entry".
+`transaction(label, fn)` must turn several `patchState` calls into one entry. Coalescing must merge changes within N milliseconds or by a key, for example one entry per drag. A transaction should always create exactly one entry.
 
 ## Decision
 
@@ -24,16 +24,16 @@ Coalescing:
 
 ## Alternatives
 
-- Create an empty entry for an empty transaction: matches the brief word for word and is useless in practice.
+- Create an empty entry for an empty transaction: matches that rule word for word and is useless in practice.
 - Keep the changes of a failed transaction: leaves the store in a state no one asked for.
 - Time-based coalescing only: a slow drag splits into several entries.
 
 ## Consequences
 
-- The rule about empty transactions is a refinement of the brief. It is recorded here and in the README limitations, not hidden.
+- The rule about empty transactions refines that requirement. It is recorded here and in the README limitations, not hidden.
 - The engine has an "open entry" concept with a timer, which tests drive with fake timers.
 - A merged entry (a gesture or a window run) whose net change is empty is removed when it is sealed, and the engine goes back to the parent. The check runs on a real diff, once per gesture, so a drag that ends where it started leaves no entry.
 - A key from `beginCoalescing` overrides the key from the options for as long as the gesture is open. Starting or ending a gesture seals the open entry, so two gestures with the same key stay two entries.
 - `jumpTo` seals the open entry before it moves. If the target is that open entry and sealing removes it because its net change is empty, the call returns without a move: the state already equals what the entry stood for. An id that never existed still throws. A model-based property run found this case.
 - `coalesce.windowMs` also starts an idle timer that seals the entry when the window passes without a change, so the patch is computed and the references are dropped even when no later change arrives. A key without a window has no timer: it stays open until another change, a move or `endCoalescing`.
-- Found while building the demo (M7): `windowMs` merges every key-less change in the window, so a store that sets it merges an add and the connector drawn a moment later. A key that should merge without that side effect has to run without `windowMs`, and then the entry never closes on its own. The demo seals it from its own timer (`beginCoalescing` and `endCoalescing` back to back). A gesture left open has the same trap in the other direction: while its key is on the stack, every change joins it, so the demo ends a gesture before any other write. ADR 0015 has the details.
+- Found while building the demo: `windowMs` merges every key-less change in the window, so a store that sets it merges an add and the connector drawn a moment later. A key that should merge without that side effect has to run without `windowMs`, and then the entry never closes on its own. The demo seals it from its own timer (`beginCoalescing` and `endCoalescing` back to back). A gesture left open has the same trap in the other direction: while its key is on the stack, every change joins it, so the demo ends a gesture before any other write. ADR 0015 has the details.

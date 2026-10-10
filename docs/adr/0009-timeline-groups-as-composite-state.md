@@ -18,7 +18,7 @@ Status: accepted, 2026-10-04
 
 - Merge changes from different stores that happen in the same synchronous turn automatically: surprising, because two unrelated updates in one tick would undo together.
 - A separate engine per store with a coordinator that links entries by id: needs a second structure to keep the trees consistent, which the composite state avoids.
-- One timeline per store only: fails the brief.
+- One timeline per store only: it cannot undo an action that touched several stores.
 
 ## Consequences
 
@@ -26,7 +26,7 @@ Status: accepted, 2026-10-04
 - The hot path stays O(number of stores) because the composite is rebuilt by shallow copy.
 - A store that joins late starts at its current state; history before it joined does not include it. The docs say so.
 
-## Decisions made in milestone M4
+## Decisions made while building groups
 
 - The group is a class, `TimelineGroup`, built by `provideTimelineGroup(options)` with a factory provider. It reuses the store runtime over the composite state, so undo, redo, jump, transactions, coalescing and signals behave exactly as in one store. A member store gets the group runtime as its own, so its `undo` and `transaction` are the group's.
 - The limits belong to the group: `maxEntries`, `checkpointEvery`, `coalesce.windowMs` and `persistence` are options of `provideTimelineGroup`, and a member store that passes them throws a `TimelineError`. The types forbid them too. A member can still set `label`, `coalesce.key`, `track` and `skip`.

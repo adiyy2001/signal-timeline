@@ -18,13 +18,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/adrianturbinski/signal-timeline.git",
+    "url": "git+https://github.com/adiyy2001/signal-timeline.git",
     "directory": "projects/signal-timeline"
   },
   "bugs": {
-    "url": "https://github.com/adrianturbinski/signal-timeline/issues"
+    "url": "https://github.com/adiyy2001/signal-timeline/issues"
   },
-  "homepage": "https://github.com/adrianturbinski/signal-timeline#readme",
+  "homepage": "https://github.com/adiyy2001/signal-timeline#readme",
   "peerDependencies": {
     "@angular/core": "^21.0.0 || ^22.0.0",
     "@ngrx/signals": "^21.0.0 || ^22.0.0",

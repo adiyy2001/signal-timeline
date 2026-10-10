@@ -18,6 +18,6 @@
   },
   "treatWarningsAsErrors": true,
   "gitRevision": "main",
-  "sourceLinkTemplate": "https://github.com/adrianturbinski/signal-timeline/blob/{gitRevision}/{path}#L{line}",
+  "sourceLinkTemplate": "https://github.com/adiyy2001/signal-timeline/blob/{gitRevision}/{path}#L{line}",
   "excludeProtected": true
 }

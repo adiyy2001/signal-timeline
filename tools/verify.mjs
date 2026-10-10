@@ -11,12 +11,13 @@ const steps = [
   ['typecheck', ['pnpm', 'typecheck']],
   ['unit', ['pnpm', 'test:coverage']],
   ['types', ['pnpm', 'test:types']],
+  ['negative-controls', ['pnpm', 'negative-controls']],
   ['build', ['pnpm', 'build']],
   ['tarball', ['node', 'tools/check-tarball.mjs']],
   ['demo', ['pnpm', 'build:demo']],
   ['e2e', ['node', 'tools/run-e2e.mjs', '--skip-build']],
   ['lighthouse', ['node', 'tools/lighthouse.mjs']],
-  ['licenses', ['node', 'tools/check-licenses.mjs']],
+  ['licenses', ['pnpm', 'check:licenses']],
   ['docs', ['pnpm', 'docs:api']],
   ['site', ['node', 'tools/build-site.mjs', '--skip-build']],
   ['must-haves', ['node', 'tools/verify-must-haves.mjs']],
@@ -40,6 +41,6 @@ for (const [name, [command, ...args]] of steps) {
 
 console.log('\nverify summary');
 for (const { name, outcome, seconds } of report) {
-  console.log(`  ${name.padEnd(12)} ${outcome.padEnd(8)} ${seconds}s`);
+  console.log(`  ${name.padEnd(18)} ${outcome.padEnd(8)} ${seconds}s`);
 }
 process.exit(report.some((entry) => entry.outcome === 'FAILED') ? 1 : 0);

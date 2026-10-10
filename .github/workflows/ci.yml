@@ -38,6 +38,8 @@ jobs:
       - name: Unit and integration tests with the coverage gate
         run: pnpm test:coverage
       - run: pnpm test:types
+      - name: Replay specs catch deliberately broken helpers
+        run: pnpm negative-controls
       - run: pnpm build
       - name: Tarball, publint and arethetypeswrong
         run: node tools/check-tarball.mjs
@@ -46,7 +48,7 @@ jobs:
         run: node tools/run-e2e.mjs --skip-build
       - name: Lighthouse on the production build
         run: node tools/lighthouse.mjs
-      - run: node tools/check-licenses.mjs
+      - run: pnpm check:licenses
       - run: pnpm docs:api
       - run: node tools/build-site.mjs --skip-build
       - name: Must-have checks against the tarball and the production build

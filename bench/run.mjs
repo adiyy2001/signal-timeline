@@ -8,6 +8,7 @@ import { build } from 'esbuild';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const buildDirectory = join(root, 'tmp', 'bench');
 const resultsDirectory = join(root, 'bench', 'results');
+const nodeHeapLimitMb = 3584;
 
 function parseArguments(argv) {
   const options = { runtimes: ['node', 'chromium'], smoke: false, suites: [] };
@@ -76,7 +77,14 @@ function runInNode(bundle, options) {
   const outputPath = join(buildDirectory, 'node-output.json');
   const result = spawnSync(
     process.execPath,
-    ['--expose-gc', bundle, outputPath, options.smoke ? 'smoke' : 'full', ...options.suites],
+    [
+      '--expose-gc',
+      `--max-old-space-size=${nodeHeapLimitMb}`,
+      bundle,
+      outputPath,
+      options.smoke ? 'smoke' : 'full',
+      ...options.suites,
+    ],
     { cwd: root, stdio: 'inherit' },
   );
   if (result.status !== 0) {
@@ -90,10 +98,16 @@ function runInNode(bundle, options) {
 
 async function runInChromium(bundle, options) {
   const { chromium } = await import('playwright-core');
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--js-flags=--expose-gc', '--enable-precise-memory-info'],
-  });
+  const browser = await chromium
+    .launch({
+      headless: true,
+      args: ['--js-flags=--expose-gc', '--enable-precise-memory-info'],
+    })
+    .catch((error) => {
+      console.error(`Chromium could not start (${error.message.split('\n')[0]})`);
+      console.error('Run: pnpm exec playwright install chromium');
+      process.exit(2);
+    });
   try {
     const page = await browser.newPage();
     page.setDefaultTimeout(0);

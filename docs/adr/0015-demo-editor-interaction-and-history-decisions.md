@@ -4,14 +4,14 @@ Status: accepted, 2026-10-04
 
 ## Context
 
-The demo is a vector editor with rectangles, ellipses and connectors, built on `withEntities` and `withTimeline`, with the devtools panel beside it. It has to prove the packaging (it imports the built library), show every feature of the brief in the production build, and pass keyboard, axe and Lighthouse checks. This record lists the choices that were not obvious.
+The demo is a vector editor with rectangles, ellipses and connectors, built on `withEntities` and `withTimeline`, with the devtools panel beside it. It has to prove the packaging (it imports the built library), show every feature of the library in the production build, and pass keyboard, axe and Lighthouse checks. This record lists the choices that were not obvious.
 
 ## Decision
 
 Library and build:
 
 - The app imports `signal-timeline` and `signal-timeline/devtools` through `paths` in `projects/demo/tsconfig.app.json` that point at `dist/signal-timeline`, so the production build compiles the partial output of ng-packagr and the exports map is the real one. The unit test config maps both names to the source instead, so tests do not need a build. `tools/typecheck.mjs` builds the library first when `dist` is missing.
-- `pnpm build:demo` uses `baseHref: /signal-timeline/` in the production configuration and takes `--base-href` to change it. The e2e runner and the Lighthouse run serve `dist/demo/browser` under that same base path with a small sirv server (`tools/serve-demo.mjs`), so they test the artifact that goes to GitHub Pages and not a variant.
+- The demo is served from the root of its own host, `signal-timeline.adrianturbinski.pl`, through GitHub Pages with a custom domain. The production build therefore keeps the base href `/`, and `tools/build-site.mjs` writes `site/CNAME` and fails when `site/index.html` has another base. The e2e runner, the Lighthouse run and the demo recording serve `dist/demo/browser` at `/` with a small sirv server (`tools/serve-demo.mjs`), which is the layout Pages publishes.
 
 State and history:
 
@@ -41,8 +41,8 @@ Tests:
 - Pointer capture on the svg: fails with synthetic pointer ids and ties the drag to one element.
 - `windowMs` for keyboard edits: merges unrelated edits (see above).
 - One keyboard gesture with a timer: leaks into the next edit (see above).
-- A DOM tree with absolutely positioned elements instead of SVG: loses the resize handles and connector geometry for free, and the brief asks for SVG.
-- Roving tabindex for the shapes: Tab through every shape is what the brief says, and a drawing with a few dozen shapes does not need it.
+- A DOM tree with absolutely positioned elements instead of SVG: loses the resize handles and connector geometry for free, and SVG gives hit testing and resize handles for free.
+- Roving tabindex for the shapes: Tab through every shape is the simpler model, and a drawing with a few dozen shapes does not need it.
 
 ## Consequences
 

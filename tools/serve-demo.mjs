@@ -6,13 +6,13 @@ import sirv from 'sirv';
 const root = join(fileURLToPath(import.meta.url), '..', '..');
 
 export const defaultDirectory = join(root, 'dist', 'demo', 'browser');
-export const defaultBase = '/signal-timeline/';
+export const defaultBase = '/';
 
 export function serveDemo({ directory = defaultDirectory, base = defaultBase, port = 0 } = {}) {
   const assets = sirv(directory, { single: true, etag: true });
   const server = createServer((request, response) => {
     const url = request.url ?? '/';
-    if (url === '/' || url === base.slice(0, -1)) {
+    if (base !== '/' && (url === '/' || url === base.slice(0, -1))) {
       response.writeHead(302, { location: base });
       response.end();
       return;

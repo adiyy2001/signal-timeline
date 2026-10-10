@@ -1,10 +1,11 @@
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(fileURLToPath(import.meta.url), '..', '..');
 const site = join(root, 'site');
+const pagesHost = 'signal-timeline.adrianturbinski.pl';
 const skipBuild = process.argv.includes('--skip-build');
 
 function run(args) {
@@ -34,4 +35,11 @@ mkdirSync(site, { recursive: true });
 cpSync(demo, site, { recursive: true });
 cpSync(api, join(site, 'api'), { recursive: true });
 writeFileSync(join(site, '.nojekyll'), '');
+writeFileSync(join(site, 'CNAME'), `${pagesHost}\n`);
+
+const indexHtml = readFileSync(join(site, 'index.html'), 'utf8');
+if (!indexHtml.includes('<base href="/">')) {
+  console.error('site/index.html must carry <base href="/"> for the custom domain');
+  process.exit(1);
+}
 console.log('site/ holds the demo at / and the API reference at /api/');

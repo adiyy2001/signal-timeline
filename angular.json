@@ -85,8 +85,7 @@
                   "maximumError": "10kB"
                 }
               ],
-              "outputHashing": "all",
-              "baseHref": "/signal-timeline/"
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,

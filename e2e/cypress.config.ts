@@ -4,7 +4,7 @@ export default defineConfig({
   e2e: {
     specPattern: 'specs/**/*.cy.ts',
     supportFile: 'support/e2e.ts',
-    baseUrl: process.env['CYPRESS_BASE_URL'] ?? 'http://127.0.0.1:4300/signal-timeline/',
+    baseUrl: process.env['CYPRESS_BASE_URL'] ?? 'http://127.0.0.1:4300/',
     viewportWidth: 1440,
     viewportHeight: 900,
     video: false,

@@ -1,6 +1,6 @@
 {
   "name": "signal-timeline",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Undo, redo, transactions, a branching undo tree, history shared across stores and a time-travel panel for NgRx SignalStore, stored as patches.",
   "license": "MIT",
   "author": "Adrian Turbiński",
